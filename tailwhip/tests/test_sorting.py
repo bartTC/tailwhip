@@ -253,6 +253,15 @@ CLASS_GROUPS = (
         "flex-row-reverse",
         "items-stretch",
     ],
+    # Gap X before Y
+    [
+        "grid",
+        "gap-2",
+        "gap-x-2",
+        "gap-y-2",
+        "space-x-2",
+        "space-y-2",
+    ],
     # Container queries come before variants
     [
         "p-4",

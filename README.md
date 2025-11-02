@@ -1,19 +1,19 @@
 # Tailwhip — Tailwind CSS class sorter
 
-Tailwhip is a pure Python Tailwind CSS class sorter that works with any HTML or CSS 
+Tailwhip is a pure Python Tailwind CSS class sorter that works with any HTML or CSS
 file — including Django templates and other templating languages.
 
-![Screenshot of Tailwhip](./screenshot.png)
+![Screenshot of Tailwhip](https://github.com/bartTC/tailwhip/blob/main/screenshot.png?raw=true)
 
 ## Why Tailwhip?
 
-The [official Prettier plugin][1] for sorting Tailwind classes doesn’t play well 
-with many template languages, such as Django. While there are Prettier plugins that 
-add limited support for [Jinja templates][2], they often require configuration 
+The [official Prettier plugin][1] for sorting Tailwind classes doesn’t play well
+with many template languages, such as Django. While there are Prettier plugins that
+add limited support for [Jinja templates][2], they often require configuration
 workarounds or restrict what you can do with Prettier.
 
-Tailwhip takes a more pragmatic approach. Instead of trying to parse and understand 
-every possible template syntax, it focuses on sorting Tailwind classes reliably, and 
+Tailwhip takes a more pragmatic approach. Instead of trying to parse and understand
+every possible template syntax, it focuses on sorting Tailwind classes reliably, and
 ignores class attributes that contain template syntax.
 
 [1]: https://github.com/tailwindlabs/prettier-plugin-tailwindcss
@@ -21,13 +21,13 @@ ignores class attributes that contain template syntax.
 
 How it works:
 
-1.	It finds all `class=""` attributes and `@apply` directives in the given files.
-2.	It sorts the contained classes according to the official Tailwind CSS class order.
-3.	If a class attribute contains template syntax (e.g., `{{ ... }}` or `{% ... %}`), 
-    Tailwhip leaves it untouched.
+1. It finds all `class=""` attributes and `@apply` directives in the given files.
+2. It sorts the contained classes according to the official Tailwind CSS class order.
+3. If a class attribute contains template syntax (e.g., `{{ ... }}` or `{% ... %}`),
+   Tailwhip leaves it untouched.
 
-This approach ensures Tailwhip works across diverse environments — Django, Flask, 
-Jinja2, or even custom templating engines — without breaking your templates or 
+This approach ensures Tailwhip works across diverse environments — Django, Flask,
+Jinja2, or even custom templating engines — without breaking your templates or
 requiring complicated setup.
 
 ## Usage
@@ -36,9 +36,9 @@ requiring complicated setup.
 $ uvx tailwhip [options] [filepath...]
 
 # Find all .html and .css files in the templates directory
-$ uvx tailwhip templates/ 
+$ uvx tailwhip templates/
 
-# Preview changes 
+# Preview changes
 $ uvx tailwhip templates/ -vv
 
 # Actually apply changes
@@ -48,7 +48,7 @@ $ uvx tailwhip templates/ --write
 $ uvx tailwhip templates/**/*.scss
 
 # Standard glob patterns are supported
-$ uvx tailwhip templates/**/*.html templates/**/*.css myapp/**/*.xhtml 
+$ uvx tailwhip templates/**/*.html templates/**/*.css myapp/**/*.xhtml
 ```
 
 You can also install it with pip or use it as a Python library:

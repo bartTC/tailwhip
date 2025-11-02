@@ -3,8 +3,9 @@
 from __future__ import annotations
 
 import difflib
+from collections.abc import Iterable
 from pathlib import Path
-from typing import Iterable, Iterator, TYPE_CHECKING
+from typing import TYPE_CHECKING
 
 from rich.padding import Padding
 from rich.syntax import Syntax
@@ -18,7 +19,7 @@ if TYPE_CHECKING:
     from tailwhip.datatypes import Config
 
 
-def find_files(*, config: Config) -> Generator[Path]:
+def find_files(*, config: Config) -> Generator[Path]:  # noqa: C901
     """Find all HTML/CSS files from a list of paths.
 
     Processes multiple path inputs (files, directories, or glob patterns), expands each
@@ -83,10 +84,11 @@ def find_files(*, config: Config) -> Generator[Path]:
         # → yields: styles/main.css, components/button.css (all matching files from cwd)
         else:
             for match in Path().rglob(str(entry)):
-                resolved = match.resolve()
-                if resolved not in seen:
-                    seen.add(resolved)
-                    yield resolved
+                if match.is_file():
+                    resolved = match.resolve()
+                    if resolved not in seen:
+                        seen.add(resolved)
+                        yield resolved
 
 
 def get_diff(path: Path, old_text: str, new_text: str) -> Syntax:
@@ -105,7 +107,7 @@ def get_diff(path: Path, old_text: str, new_text: str) -> Syntax:
     return Syntax(code, "diff", theme="ansi_dark", background_color="default")
 
 
-def apply_changes(*, targets: Iterable[Path], config: Config) -> tuple[int, int]:
+def apply_changes(*, targets: Iterable[Path], config: Config) -> tuple[bool, int, int]:
     """Process target files and apply Tailwind class sorting changes.
 
     Reads each file, processes it to sort Tailwind classes (skipping any with
@@ -131,8 +133,10 @@ def apply_changes(*, targets: Iterable[Path], config: Config) -> tuple[int, int]
     """
     skipped = 0
     changed = 0
+    found_any = False
 
     for f in targets:
+        found_any = True
         old_text = f.read_text(encoding="utf-8")
         new_text = process_text(old_text, config)
 
@@ -164,4 +168,4 @@ def apply_changes(*, targets: Iterable[Path], config: Config) -> tuple[int, int]
             diff = get_diff(f, old_text, new_text)
             config.console.print(Padding(diff, (1, 0, 1, 4)))
 
-    return skipped, changed
+    return found_any, skipped, changed

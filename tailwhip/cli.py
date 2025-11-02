@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import sys
 import time
 from importlib import metadata
 from pathlib import Path  # noqa: TC003
@@ -123,11 +124,17 @@ def run(  # noqa: PLR0913
 
     start_time = time.time()
     targets = find_files(config=config)
-    skipped, changed = apply_changes(targets=targets, config=config)
+    found_any, skipped, changed = apply_changes(targets=targets, config=config)
     duration = time.time() - start_time
 
+    if not found_any:
+        config.console.print("[red]Error: No files found[/red]")
+        sys.exit(1)
+
     if config.verbosity < VERBOSITY_LOUD:
-        console.print("\nUse [important] -v [/important] (show unchanged files) or [important] -vv [/important] (show diff preview) for more detail.")
+        console.print(
+            "\nUse [important] -v [/important] (show unchanged files) or [important] -vv [/important] (show diff preview) for more detail."
+        )
 
     if not config.write:
         console.print(

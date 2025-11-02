@@ -88,7 +88,7 @@ GROUPS = [
     r"(snap)-",
     #
     # 2) Flexbox & Grid
-    r"(order|grow|shrink|basis)-",
+    r"(order|grow|shrink|basis)(-|$)",
     r"(grid-cols|grid-rows|grid-flow|auto-cols|auto-rows)-",
     r"(col-(span|start|end)|row-(span|start|end))-",
     r"(gap|space-[xy])-",

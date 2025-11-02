@@ -227,6 +227,32 @@ CLASS_GROUPS = (
         "before:content-['']",
         "before:content-['★']",
     ],
+    # Classes which maybe standalone
+    [
+        "hidden",
+        "grow",
+        "grow-0",
+        "shrink",
+        "shrink-0",
+        "truncate",
+        "truncate-0",
+    ],
+    # Cols before rows
+    [
+        "grid",
+        "grid-cols-2",
+        "grid-rows-4",
+        "gap-4",
+    ],
+    # Cols before rows
+    [
+        "flex",
+        "flex-col",
+        "flex-col-reverse",
+        "flex-row",
+        "flex-row-reverse",
+        "items-stretch",
+    ],
     # Container queries come before variants
     [
         "p-4",

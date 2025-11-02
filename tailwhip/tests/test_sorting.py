@@ -66,6 +66,16 @@ CLASS_GROUPS = (
         "pb-8",
         "pl-16",
     ],
+    # Negative variants retain order.
+    [
+        "-m-1",
+        "sm:-m-2",
+        "md:-m-3",
+        "lg:-m-4",
+        "xl:-m-5",
+        "2xl:-m-6",
+        "3xl:-m-7",
+    ],
     # Size, W, Min-W, Max-W, H, Min-H, Max-H, Aspect.
     [
         "size-4",

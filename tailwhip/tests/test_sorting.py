@@ -7,7 +7,7 @@ from typing import TYPE_CHECKING
 
 import pytest
 
-from tailwhip.process import process_css, process_html
+from tailwhip.process import process_css, process_html, process_text
 from tailwhip.sorting import sort_classes
 
 if TYPE_CHECKING:
@@ -328,3 +328,39 @@ def test_shuffle_is_working(config: Config) -> None:
         "hue-rotate",
     ]
     assert shuffle(classes) != classes
+
+
+def test_template_syntax(config: Config) -> None:
+    """Test that the template syntax is working."""
+
+
+@pytest.mark.parametrize(
+    "html",
+    [
+        '<div class="p-4 container {{ extra_classes }}"></div>',
+        '<div class="{% if not active %}hidden{% endif %} p-4 container"></div>',
+    ],
+)
+def test_template_markup_in_class(html: str, config: Config) -> None:
+    """Classes with Template syntax should not be touched."""
+    result = process_text(html, config)
+    assert result == html
+
+
+@pytest.mark.parametrize(
+    ("html", "expected"),
+    [
+        (
+            '<div class="p-4 container">{{ title }}</div>',
+            '<div class="container p-4">{{ title }}</div>',
+        ),
+        (
+            '{% if not active %}<div class="p-4 container">{{ title }}</div>{% endif %}',
+            '{% if not active %}<div class="container p-4">{{ title }}</div>{% endif %}',
+        ),
+    ],
+)
+def test_template_markup_outside(html: str, expected: str, config: Config) -> None:
+    """Template syntax is not in the classes, so this is sorted."""
+    result = process_text(html, config)
+    assert result == expected

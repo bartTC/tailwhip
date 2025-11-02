@@ -13,7 +13,8 @@ add limited support for [Jinja templates][2], they often require configuration
 workarounds or restrict what you can do with Prettier.
 
 Tailwhip takes a more pragmatic approach. Instead of trying to parse and understand 
-every possible template syntax, it focuses on sorting Tailwind classes reliably.
+every possible template syntax, it focuses on sorting Tailwind classes reliably, and 
+ignores class attributes that contain template syntax.
 
 [1]: https://github.com/tailwindlabs/prettier-plugin-tailwindcss
 [2]: https://github.com/davidodenwald/prettier-plugin-jinja-template
@@ -28,7 +29,6 @@ How it works:
 This approach ensures Tailwhip works across diverse environments — Django, Flask, 
 Jinja2, or even custom templating engines — without breaking your templates or 
 requiring complicated setup.
-
 
 ## Usage
 

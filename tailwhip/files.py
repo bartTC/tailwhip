@@ -136,7 +136,15 @@ def apply_changes(*, targets: Iterable[Path], config: Config) -> tuple[bool, int
 
     for f in targets:
         found_any = True
-        old_text = f.read_text(encoding="utf-8")
+        try:
+            old_text = f.read_text(encoding="utf-8")
+        except UnicodeDecodeError:
+            config.console.print(
+                f"[red]Unable to read[/red] [filename]{f}[/filename]", highlight=False
+            )
+            skipped += 1
+            continue
+
         new_text = process_text(old_text, config)
 
         # Skip files that don't need changes

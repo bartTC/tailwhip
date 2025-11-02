@@ -2,21 +2,12 @@
 
 from __future__ import annotations
 
-import re
 from typing import TYPE_CHECKING
 
-from tailwhip.constants import (
-    GROUP_PATTERNS,
-    TAILWIND_COLORS,
-    VARIANT_PREFIX_ORDER,
-    VARIANT_SEP,
-)
+from tailwhip import constants
 
 if TYPE_CHECKING:
     from tailwhip.datatypes import Config
-
-# Compile variant patterns once at module load
-VARIANT_PATTERNS = [re.compile(pattern) for pattern in VARIANT_PREFIX_ORDER]
 
 
 def variant_rank(variant: str) -> int:
@@ -31,10 +22,10 @@ def variant_rank(variant: str) -> int:
 
     """
     variant_with_colon = f"{variant}:"
-    for i, pat in enumerate(VARIANT_PATTERNS):
+    for i, pat in enumerate(constants.VARIANT_PATTERNS):
         if pat.match(variant_with_colon):
             return i
-    return len(VARIANT_PATTERNS) + 1  # unknowns to the end
+    return len(constants.VARIANT_PATTERNS) + 1  # unknowns to the end
 
 
 def variant_base(classname: str) -> tuple[list[str], str]:
@@ -67,7 +58,7 @@ def variant_base(classname: str) -> tuple[list[str], str]:
         (['dark', 'lg', 'hover'], 'bg-gray-900')
 
     """
-    parts = classname.split(VARIANT_SEP)
+    parts = classname.split(constants.VARIANT_SEP)
     base = parts[-1]
     unique_variants = list(dict.fromkeys(parts[:-1]))  # dedupe while preserving order
     variants = sorted(unique_variants, key=lambda v: (variant_rank(v), v))
@@ -115,9 +106,9 @@ def is_color_utility(utility: str, config: Config) -> bool:
     utility_without_opacity = utility.split("/")[0]
 
     # Combine standard and custom colors
-    all_colors = TAILWIND_COLORS
+    all_colors = constants.TAILWIND_COLORS
     if config.custom_colors:
-        all_colors = TAILWIND_COLORS | config.custom_colors
+        all_colors = constants.TAILWIND_COLORS | config.custom_colors
 
     # Check for multi-part custom colors first (e.g., "secondary-500" in "border-t-secondary-500")
     return any(color in utility_without_opacity for color in all_colors)
@@ -157,10 +148,10 @@ def utility_rank(utility: str) -> int:
     # Strip leading negative sign for matching, so -mt-4 matches the same pattern as mt-4
     utility_to_match = utility.lstrip("-")
 
-    for i, pat in enumerate(GROUP_PATTERNS):
+    for i, pat in enumerate(constants.GROUP_PATTERNS):
         if pat.match(utility_to_match):
             return i
-    return len(GROUP_PATTERNS) + 1  # unknowns to the end
+    return len(constants.GROUP_PATTERNS) + 1  # unknowns to the end
 
 
 def sort_key(

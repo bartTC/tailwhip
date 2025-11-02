@@ -54,7 +54,7 @@ VARIANT_SEP = ":"
 #
 # Example: "flex", "flex-col", "flex-row" all match r"(flex|inline-flex)" and sort alphabetically.
 #
-GROUPS = [
+GROUP_ORDER = [
     #
     # 0) Components (Tailwind "components" layer comes before utilities)
     r"(^| )(container)( |$)",
@@ -192,6 +192,8 @@ GROUPS = [
     r"(peer|group|aria-|data-)(:|$)",
 ]
 
+GROUP_PATTERNS = [re.compile("^" + g) for g in GROUP_ORDER]
+
 VARIANT_PREFIX_ORDER = [
     #
     #  Container queries (most specific, come first)
@@ -252,6 +254,7 @@ VARIANT_PREFIX_ORDER = [
     r"(marker:|selection:|file:|placeholder:|backdrop:|first-letter:|first-line:)",
 ]
 
+VARIANT_PATTERNS = [re.compile(v) for v in VARIANT_PREFIX_ORDER]
 
 # Standard Tailwind color names (extracted from the palette)
 TAILWIND_COLORS = {
@@ -284,8 +287,6 @@ TAILWIND_COLORS = {
     "yellow",
 }
 
-
-GROUP_PATTERNS = [re.compile("^" + g) for g in GROUPS]
 
 CLASS_ATTR_RE = re.compile(
     r"""(?P<full>\bclass\s*=\s*(?P<quote>["'])(?P<val>.*?)(?P=quote))""",

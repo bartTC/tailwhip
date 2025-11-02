@@ -151,7 +151,7 @@ def utility_rank(utility: str) -> int:
     for i, pat in enumerate(constants.GROUP_PATTERNS):
         if pat.match(utility_to_match):
             return i
-    return len(constants.GROUP_PATTERNS) + 1  # unknowns to the end
+    return -1  # len(constants.GROUP_PATTERNS) + 1  # Unknown classes to the front
 
 
 def sort_key(

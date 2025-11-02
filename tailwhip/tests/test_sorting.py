@@ -20,8 +20,9 @@ def shuffle(lst: list[str]) -> list[str]:
 
 
 CLASS_GROUPS = (
-    # Container comes always first.
+    # Container comes always first. But non-Tailwind classes even before them.
     [
+        "select2-container",  # Not tailwind
         "container",
         "m-2",
         "font-bold",
@@ -212,7 +213,6 @@ CLASS_GROUPS = (
         "backdrop-blur-md",
         "backdrop-brightness-75",
         "backdrop-contrast-125",
-        "hue-rotate",
     ],
     # Arbitrary HTML
     [
@@ -370,7 +370,6 @@ def test_shuffle_is_working(config: Config) -> None:
         "backdrop-blur-md",
         "backdrop-brightness-75",
         "backdrop-contrast-125",
-        "hue-rotate",
     ]
     assert shuffle(classes) != classes
 

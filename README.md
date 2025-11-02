@@ -3,6 +3,8 @@
 Tailwhip is a pure Python Tailwind CSS class sorter that works with any HTML or CSS 
 file — including Django templates and other templating languages.
 
+![Screenshot of Tailwhip](./screenshot.png)
+
 ## Why Tailwhip?
 
 The [official Prettier plugin][1] for sorting Tailwind classes doesn’t play well 
@@ -26,3 +28,36 @@ How it works:
 This approach ensures Tailwhip works across diverse environments — Django, Flask, 
 Jinja2, or even custom templating engines — without breaking your templates or 
 requiring complicated setup.
+
+
+## Usage
+
+```bash
+$ uvx tailwhip [options] [filepath...]
+
+# Find all .html and .css files in the templates directory
+$ uvx tailwhip templates/ 
+
+# Preview changes 
+$ uvx tailwhip templates/ -vv
+
+# Actually apply changes
+$ uvx tailwhip templates/ --write
+
+# Sort classes in .scss files
+$ uvx tailwhip templates/**/*.scss
+
+# Standard glob patterns are supported
+$ uvx tailwhip templates/**/*.html templates/**/*.css myapp/**/*.xhtml 
+```
+
+You can also install it with pip or use it as a Python library:
+
+```bash
+$ pip install tailwhip
+
+$ tailwhip templates/
+$ python -m tailwhip templates/
+```
+
+See `--help` for all options and features.

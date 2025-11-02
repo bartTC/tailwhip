@@ -10,7 +10,7 @@ from typing import Annotated
 import typer
 from rich.console import Console
 
-from tailwhip.constants import CONSOLE_THEME, GLOBS, SKIP_EXPRESSIONS
+from tailwhip.constants import CONSOLE_THEME, GLOBS, SKIP_EXPRESSIONS, VERBOSITY_LOUD
 from tailwhip.datatypes import Config
 from tailwhip.files import apply_changes, find_files
 
@@ -126,8 +126,8 @@ def run(  # noqa: PLR0913
     skipped, changed = apply_changes(targets=targets, config=config)
     duration = time.time() - start_time
 
-    if config.verbosity < 2:  # noqa: PLR2004
-        console.print("\nUse [important] -v [/important] to see detailed changes.")
+    if config.verbosity < VERBOSITY_LOUD:
+        console.print("\nUse [important] -v [/important] (show unchanged files) or [important] -vv [/important] (show diff preview) for more detail.")
 
     if not config.write:
         console.print(

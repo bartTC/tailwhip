@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import difflib
 from pathlib import Path
-from typing import TYPE_CHECKING
+from typing import Iterable, Iterator, TYPE_CHECKING
 
 from rich.padding import Padding
 from rich.syntax import Syntax
@@ -105,7 +105,7 @@ def get_diff(path: Path, old_text: str, new_text: str) -> Syntax:
     return Syntax(code, "diff", theme="ansi_dark", background_color="default")
 
 
-def apply_changes(*, targets: list[Path], config: Config) -> tuple[int, int]:
+def apply_changes(*, targets: Iterable[Path], config: Config) -> tuple[int, int]:
     """Process target files and apply Tailwind class sorting changes.
 
     Reads each file, processes it to sort Tailwind classes (skipping any with

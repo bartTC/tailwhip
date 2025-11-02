@@ -315,3 +315,16 @@ def test_css_apply_advanced(config: Config) -> None:
     """
     result = process_css(css, config)
     assert result == expected
+
+
+def test_shuffle_is_working(config: Config) -> None:
+    """Test that the shuffling is actually shuffling."""
+    classes = [
+        "p-2",
+        "bg-white/50",
+        "backdrop-blur-md",
+        "backdrop-brightness-75",
+        "backdrop-contrast-125",
+        "hue-rotate",
+    ]
+    assert shuffle(classes) != classes

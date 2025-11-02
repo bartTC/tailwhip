@@ -252,7 +252,7 @@ wheels = [
 
 [[package]]
 name = "tailwhip"
-version = "0.9a2"
+version = "0.9a3"
 source = { editable = "." }
 dependencies = [
     { name = "rich" },

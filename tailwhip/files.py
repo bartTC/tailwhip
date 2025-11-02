@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import difflib
-from collections.abc import Iterable
 from pathlib import Path
 from typing import TYPE_CHECKING
 
@@ -14,7 +13,7 @@ from tailwhip.constants import GLOBS, VERBOSITY_ALL, VERBOSITY_LOUD, VERBOSITY_N
 from tailwhip.process import process_text
 
 if TYPE_CHECKING:
-    from collections.abc import Generator
+    from collections.abc import Generator, Iterable
 
     from tailwhip.datatypes import Config
 

@@ -8,12 +8,11 @@ from tailwhip.constants import (
     APPLY_RE,
     CLASS_ATTR_RE,
 )
+from tailwhip.context import get_config
 from tailwhip.sorting import sort_classes
 
 if TYPE_CHECKING:
     import re
-
-    from tailwhip.datatypes import Config
 
 
 def split_classes(s: str) -> list[str]:
@@ -48,7 +47,7 @@ def split_classes(s: str) -> list[str]:
     return s.strip().split()
 
 
-def process_class_attr(match: re.Match[str], config: Config) -> str:
+def process_class_attr(match: re.Match[str]) -> str:
     """Process and sort CSS classes within an HTML class attribute.
 
     Extracts class names from an HTML class attribute regex match, sorts them using
@@ -57,7 +56,6 @@ def process_class_attr(match: re.Match[str], config: Config) -> str:
 
     Args:
         match: A regex match object containing groups 'full', 'quote', and 'val'
-        config: Argument configuration object
 
     Returns:
         The reconstructed class attribute string with sorted classes, or the original
@@ -77,6 +75,7 @@ def process_class_attr(match: re.Match[str], config: Config) -> str:
         >>> # Output: class=""  # Unchanged
 
     """
+    config = get_config()
     full = match.group("full")
     quote = match.group("quote")
     val = match.group("val")
@@ -91,12 +90,12 @@ def process_class_attr(match: re.Match[str], config: Config) -> str:
     if not classes:
         return full
 
-    sorted_classes = sort_classes(classes, config)
+    sorted_classes = sort_classes(classes)
     new_val = " ".join(sorted_classes)
     return f"class={quote}{new_val}{quote}"
 
 
-def process_apply_directive(match: re.Match[str], config: Config) -> str:
+def process_apply_directive(match: re.Match[str]) -> str:
     """Process and sort CSS classes within a Tailwind @apply directive.
 
     Extracts class names from a CSS @apply directive regex match, sorts them using
@@ -104,7 +103,6 @@ def process_apply_directive(match: re.Match[str], config: Config) -> str:
 
     Args:
         match: A regex match object containing a 'classes' group
-        config: Argument configuration object
 
     Returns:
         The reconstructed @apply directive string with sorted classes, or the original
@@ -124,6 +122,7 @@ def process_apply_directive(match: re.Match[str], config: Config) -> str:
         >>> # Output: @apply;  # Unchanged
 
     """
+    config = get_config()
     classes_str = match.group("classes").strip()
 
     # Skip if a template expression appears inside the class attribute
@@ -136,13 +135,12 @@ def process_apply_directive(match: re.Match[str], config: Config) -> str:
     if not classes:
         return match.group(0)
 
-    set(config.custom_colors) if config.custom_colors else None
-    sorted_classes = sort_classes(classes, config)
+    sorted_classes = sort_classes(classes)
     new_classes = " ".join(sorted_classes)
     return f"@apply {new_classes};"
 
 
-def process_html(text: str, config: Config) -> str:
+def process_html(text: str) -> str:
     """Process all HTML class attributes in the given text.
 
     Finds all class attributes using regex and sorts their CSS classes according to
@@ -151,7 +149,6 @@ def process_html(text: str, config: Config) -> str:
 
     Args:
         text: HTML content as a string
-        config: Argument configuration object
 
     Returns:
         The HTML content with all class attributes sorted
@@ -172,10 +169,10 @@ def process_html(text: str, config: Config) -> str:
         '<div class="flex {{ extra_classes }}"></div>'
 
     """
-    return CLASS_ATTR_RE.sub(lambda m: process_class_attr(m, config), text)
+    return CLASS_ATTR_RE.sub(process_class_attr, text)
 
 
-def process_css(text: str, config: Config) -> str:
+def process_css(text: str) -> str:
     """Process all @apply directives in CSS content.
 
     Finds all Tailwind @apply directives using regex and sorts their CSS classes
@@ -183,7 +180,6 @@ def process_css(text: str, config: Config) -> str:
 
     Args:
         text: CSS content as a string
-        config: Argument configuration object
 
     Returns:
         The CSS content with all @apply directives sorted
@@ -204,10 +200,10 @@ def process_css(text: str, config: Config) -> str:
         # Returns with sorted classes in @apply
 
     """
-    return APPLY_RE.sub(lambda m: process_apply_directive(m, config), text)
+    return APPLY_RE.sub(process_apply_directive, text)
 
 
-def process_text(text: str, config: Config) -> str:
+def process_text(text: str) -> str:
     """Process file content by sorting Tailwind classes.
 
     Processes both HTML class attributes and CSS @apply directives in the same pass.
@@ -215,7 +211,6 @@ def process_text(text: str, config: Config) -> str:
 
     Args:
         text: The file content as a string
-        config: Argument configuration object
 
     Returns:
         The processed content with sorted CSS classes
@@ -236,5 +231,5 @@ def process_text(text: str, config: Config) -> str:
     """
     # Process both HTML class attributes and CSS @apply directives
     # If the pattern doesn't match, the text is unchanged
-    text = process_html(text, config)
-    return process_css(text, config)
+    text = process_html(text)
+    return process_css(text)

@@ -3,53 +3,58 @@
 from __future__ import annotations
 
 import difflib
+from concurrent.futures import ThreadPoolExecutor, as_completed
+from dataclasses import dataclass
 from pathlib import Path
 from typing import TYPE_CHECKING
 
 from rich.padding import Padding
 from rich.syntax import Syntax
+from wcmatch import glob
 
 from tailwhip.constants import GLOBS, VERBOSITY_ALL, VERBOSITY_LOUD, VERBOSITY_NONE
+from tailwhip.context import get_config
 from tailwhip.process import process_text
 
 if TYPE_CHECKING:
     from collections.abc import Generator, Iterable
 
-    from tailwhip.datatypes import Config
+
+@dataclass(slots=True)
+class FileResult:
+    """Result of processing a single file."""
+
+    path: Path
+    skipped: bool
+    changed: bool
+    old_text: str | None
+    new_text: str | None
 
 
-def find_files(*, config: Config) -> Generator[Path]:  # noqa: C901
+def find_files() -> Generator[Path]:  # noqa: C901
     """Find all HTML/CSS files from a list of paths.
 
     Processes multiple path inputs (files, directories, or glob patterns), expands each
     one, and returns a deduplicated generator of all matching HTML/CSS files. If no paths
     are provided, defaults to scanning the current directory.
 
-    Args:
-        config: Argument configuration object
-
     Yields:
         Path objects for all HTML/CSS files found (deduplicated and sorted)
 
     Examples:
-        >>> config.paths = [Path('templates/'), Path('styles/')]
-        >>> list(find_files(config))
+        >>> list(find_files())
         [PosixPath('templates/index.html'), PosixPath('styles/main.css')]
 
-        >>> config.paths = [Path('src/**/*.html'), Path('components/**/*.html')]
-        >>> list(find_files(config))
+        >>> list(find_files())
         [PosixPath('src/pages/home.html'), PosixPath('components/nav.html')]
 
-        >>> config.paths = []
-        >>> list(find_files(config))  # Defaults to current directory
+        >>> list(find_files())  # Defaults to current directory
         [PosixPath('./index.html'), PosixPath('./styles.css')]
 
-        >>> config.paths = [Path('index.html'), Path('about.html'), Path('index.html')]
-        >>> list(find_files(config))
+        >>> list(find_files())
         [PosixPath('index.html'), PosixPath('about.html')]  # Deduplication
 
-        >>> config.paths = [Path('*.html'), Path('static/*.css')]
-        >>> list(find_files(config))
+        >>> list(find_files())
         [PosixPath('home.html'), PosixPath('static/app.css')]
 
     """
@@ -58,9 +63,8 @@ def find_files(*, config: Config) -> Generator[Path]:  # noqa: C901
     for entry in config.paths:
         p = Path(entry)
 
-        # Case 1: Existing directory - search within it using configured glob patterns
-        # Example: entry="src/" with config.globs=["**/*.html"]
-        # → yields: src/index.html, src/pages/about.html
+        # If it's a directory, expand it with default GLOBS patterns
+        # Example: entry="src/" → patterns=["src/**/*.html", "src/**/*.css"]
         if p.is_dir():
             for pattern in GLOBS:
                 for match in p.glob(pattern):
@@ -115,7 +119,6 @@ def apply_changes(*, targets: Iterable[Path], config: Config) -> tuple[bool, int
 
     Args:
         targets: List of Path objects for files to process
-        config: Argument configuration object
 
     Returns:
         A tuple of (skipped_count, changed_count) where:
@@ -123,13 +126,14 @@ def apply_changes(*, targets: Iterable[Path], config: Config) -> tuple[bool, int
         - changed_count: Number of files that were modified or would be modified
 
     Examples:
-        >>> apply_changes(targets=[Path('index.html')], config=config)
+        >>> apply_changes(targets=[Path('index.html')])
         (0, 1)  # 0 skipped, 1 changed
 
-        >>> apply_changes(targets=[Path('a.html'), Path('b.html')], config=config)
+        >>> apply_changes(targets=[Path('a.html'), Path('b.html')])
         (1, 1)  # 1 skipped (no changes), 1 changed
 
     """
+    config = get_config()
     skipped = 0
     changed = 0
     found_any = False

@@ -11,7 +11,7 @@ if TYPE_CHECKING:
     from rich.console import Console
 
 
-@dataclass
+@dataclass(frozen=True)
 class Config:
     """Argument parser config."""
 

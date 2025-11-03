@@ -12,6 +12,7 @@ import typer
 from rich.console import Console
 
 from tailwhip.constants import CONSOLE_THEME, GLOBS, SKIP_EXPRESSIONS, VERBOSITY_LOUD
+from tailwhip.context import set_config
 from tailwhip.datatypes import Config
 from tailwhip.files import apply_changes, find_files
 
@@ -119,12 +120,13 @@ def run(  # noqa: PLR0913
         verbosity=verbosity + 1,
         custom_colors=custom_colors_list,
     )
+    set_config(config)
 
     console.print("")
 
     start_time = time.time()
-    targets = find_files(config=config)
-    found_any, skipped, changed = apply_changes(targets=targets, config=config)
+    targets = find_files()
+    found_any, skipped, changed = apply_changes(targets=targets)
     duration = time.time() - start_time
 
     if not found_any:

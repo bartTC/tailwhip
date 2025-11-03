@@ -2,12 +2,8 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
-
 from tailwhip import constants
-
-if TYPE_CHECKING:
-    from tailwhip.datatypes import Config
+from tailwhip.context import get_config
 
 
 def variant_rank(variant: str) -> int:
@@ -65,7 +61,7 @@ def variant_base(classname: str) -> tuple[list[str], str]:
     return variants, base
 
 
-def is_color_utility(utility: str, config: Config) -> bool:
+def is_color_utility(utility: str, all_colors: set[str]) -> bool:
     """Check if a utility is a color-related utility.
 
     Color utilities follow patterns like:
@@ -77,7 +73,7 @@ def is_color_utility(utility: str, config: Config) -> bool:
 
     Args:
         utility: A base Tailwind CSS utility string (without variants)
-        config: Argument configuration object
+        all_colors: Set of all color names (standard + custom)
 
     Returns:
         True if the utility includes a Tailwind color name, False otherwise
@@ -98,17 +94,12 @@ def is_color_utility(utility: str, config: Config) -> bool:
         >>> is_color_utility('border-red-400')
         True
 
-        >>> is_color_utility('bg-brand-500', {'brand'})
+        >>> is_color_utility('bg-brand-500')
         True
 
     """
     # Strip opacity modifier (e.g., /90, /50) before checking
     utility_without_opacity = utility.split("/")[0]
-
-    # Combine standard and custom colors
-    all_colors = constants.TAILWIND_COLORS
-    if config.custom_colors:
-        all_colors = constants.TAILWIND_COLORS | config.custom_colors
 
     # Check for multi-part custom colors first (e.g., "secondary-500" in "border-t-secondary-500")
     return any(color in utility_without_opacity for color in all_colors)
@@ -155,7 +146,7 @@ def utility_rank(utility: str) -> int:
 
 
 def sort_key(
-    cls: str, config: Config
+    cls: str, all_colors: set[str]
 ) -> tuple[tuple[tuple[int, str], ...], int, bool, str]:
     """Generate a sort key for a Tailwind CSS class.
 
@@ -169,7 +160,7 @@ def sort_key(
 
     Args:
         cls: A complete Tailwind CSS class string (with or without variants)
-        config: Argument configuration object
+        all_colors: Set of all color names (standard + custom)
 
     Returns:
         A tuple suitable for sorting
@@ -193,11 +184,11 @@ def sort_key(
     """
     variants, base = variant_base(cls)
     variant_keys = tuple((variant_rank(v), v) for v in variants)
-    is_color = is_color_utility(base, config)
+    is_color = is_color_utility(base, all_colors)
     return variant_keys, utility_rank(base), is_color, base
 
 
-def sort_classes(class_list: list[str], config: Config) -> list[str]:
+def sort_classes(class_list: list[str]) -> list[str]:
     """Sort a list of Tailwind CSS classes in a consistent, logical order.
 
     Classes are deduplicated (preserving the first occurrence) and sorted by:
@@ -208,7 +199,6 @@ def sort_classes(class_list: list[str], config: Config) -> list[str]:
 
     Args:
         class_list: A list of Tailwind CSS class strings
-        config: Argument configuration object
 
     Returns:
         A sorted and deduplicated list of class strings
@@ -230,5 +220,11 @@ def sort_classes(class_list: list[str], config: Config) -> list[str]:
         ['flex', 'sm:flex', 'text-red-500', 'focus:hover:text-blue-500']
 
     """
+    # Build a set of all colors, tailwind and custom colors
+    config = get_config()
+    all_colors = constants.TAILWIND_COLORS
+    if config.custom_colors:
+        all_colors = all_colors | config.custom_colors
+
     deduped = list(dict.fromkeys(class_list))
-    return sorted(deduped, key=lambda cls: sort_key(cls, config))
+    return sorted(deduped, key=lambda cls: sort_key(cls, all_colors))

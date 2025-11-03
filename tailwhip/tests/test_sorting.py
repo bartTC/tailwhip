@@ -9,9 +9,7 @@ import pytest
 
 from tailwhip.process import process_css, process_html, process_text
 from tailwhip.sorting import sort_classes
-
-if TYPE_CHECKING:
-    from tailwhip.datatypes import Config
+from tailwhip.tests.conftest import update_config
 
 
 def shuffle(lst: list[str]) -> list[str]:
@@ -277,20 +275,24 @@ CLASS_GROUPS = (
 
 @pytest.mark.parametrize("classes", CLASS_GROUPS)
 @pytest.mark.parametrize("iteration", range(10))
-def test_sorting(classes: list[str], config: Config, iteration: int) -> None:  # noqa: ARG001
+def test_sorting(classes: list[str], iteration: int) -> None:  # noqa: ARG001
     """Test sorting of classes.
 
-    The classes in the parameter are the correct order. We shuffle them before
-    we do the comparision. To mitigate randomness, we run the test multiple times.
+    The classes in the parameter are in the correct order. We shuffle them before
+    we do the comparison. To mitigate randomness, we run the test multiple times.
     """
-    result = sort_classes(shuffle(classes), config)
+    result = sort_classes(shuffle(classes))
     assert result == classes
 
 
 @pytest.mark.parametrize("iteration", range(10))
-def test_sorting_custom_colors(config: Config, iteration: int) -> None:  # noqa: ARG001
-    """Custom colors are sorted along other colors."""
-    config.custom_colors = {"primary", "secondary-500", "border-almond-500"}
+def test_sorting_custom_colors(iteration: int) -> None:  # noqa: ARG001
+    """Custom colors are sorted along with other colors."""
+    # Update the global config fixture with custom colors.
+    update_config(
+        custom_colors={"primary", "secondary-500", "border-almond-500"},
+    )
+
     classes = [
         "border-1",  # Non colors
         "border-b-4",
@@ -302,11 +304,11 @@ def test_sorting_custom_colors(config: Config, iteration: int) -> None:  # noqa:
         "border-t-secondary-500",
     ]
 
-    result = sort_classes(shuffle(classes), config)
+    result = sort_classes(shuffle(classes))
     assert result == classes
 
 
-def test_kitchen_sink_example(config: Config) -> None:
+def test_kitchen_sink_example() -> None:
     """Test a complex real-world example with many advanced features."""
     html = """
 <div class="group relative p-[calc(1rem+2px)] m-[clamp(1rem,5vw,3rem)]
@@ -327,11 +329,11 @@ def test_kitchen_sink_example(config: Config) -> None:
     <h1 class="grid-cols-[200px_1fr] p-[calc(1rem+2px)] shadow-[0_10px_20px_rgba(0,0,0,0.1)] backdrop-blur-md group-hover:bg-blue-500 [&>*]:p-4 before:content-['']">Test</h1>
 </div>
     """
-    result = process_html(html, config)
+    result = process_html(html)
     assert result == expected
 
 
-def test_css_apply_advanced(config: Config) -> None:
+def test_css_apply_advanced() -> None:
     """Test CSS @apply with advanced features."""
     css = """
 .advanced {
@@ -358,24 +360,8 @@ def test_css_apply_advanced(config: Config) -> None:
     @apply grid grid-cols-[200px_1fr_2fr] relative gap-[calc(1rem+2px)] m-[clamp(1rem,5vw,3rem)] p-[calc(1rem+2px)] bg-white/80 shadow-[0_35px_35px_rgba(0,0,0,0.25)] backdrop-blur-md backdrop-brightness-75 group min-[320px]:grid-cols-1 min-[768px]:grid-cols-2 lg:hover:backdrop-brightness-90 hover:backdrop-blur-lg [&_a]:hover:underline [&>*]:p-4 [&_a]:text-blue-500 before:absolute before:inset-0 before:content-[''];
 }
     """
-    result = process_css(css, config)
+    result = process_css(css)
     assert result == expected
-
-
-def test_shuffle_is_working(config: Config) -> None:
-    """Test that the shuffling is actually shuffling."""
-    classes = [
-        "p-2",
-        "bg-white/50",
-        "backdrop-blur-md",
-        "backdrop-brightness-75",
-        "backdrop-contrast-125",
-    ]
-    assert shuffle(classes) != classes
-
-
-def test_template_syntax(config: Config) -> None:
-    """Test that the template syntax is working."""
 
 
 @pytest.mark.parametrize(
@@ -385,9 +371,9 @@ def test_template_syntax(config: Config) -> None:
         '<div class="{% if not active %}hidden{% endif %} p-4 container"></div>',
     ],
 )
-def test_template_markup_in_class(html: str, config: Config) -> None:
-    """Classes with Template syntax should not be touched."""
-    result = process_text(html, config)
+def test_template_markup_in_class(html: str) -> None:
+    """Classes with Template syntax are not changed."""
+    result = process_text(html)
     assert result == html
 
 
@@ -404,7 +390,7 @@ def test_template_markup_in_class(html: str, config: Config) -> None:
         ),
     ],
 )
-def test_template_markup_outside(html: str, expected: str, config: Config) -> None:
+def test_template_markup_outside(html: str, expected: str) -> None:
     """Template syntax is not in the classes, so this is sorted."""
-    result = process_text(html, config)
+    result = process_text(html)
     assert result == expected

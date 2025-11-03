@@ -27,6 +27,7 @@ requires-python = ">=3.10"
 dependencies = [
     "rich",
     "typer",
+    "wcmatch",
 ]
 
 [project.urls]

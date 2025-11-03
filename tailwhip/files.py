@@ -58,7 +58,9 @@ def find_files() -> Generator[Path]:  # noqa: C901
         [PosixPath('home.html'), PosixPath('static/app.css')]
 
     """
+    config = get_config()
     seen = set()
+    flags = glob.GLOBSTAR | glob.BRACE | glob.EXTGLOB | glob.DOTGLOB
 
     for entry in config.paths:
         p = Path(entry)
@@ -66,32 +68,25 @@ def find_files() -> Generator[Path]:  # noqa: C901
         # If it's a directory, expand it with default GLOBS patterns
         # Example: entry="src/" → patterns=["src/**/*.html", "src/**/*.css"]
         if p.is_dir():
-            for pattern in GLOBS:
-                for match in p.glob(pattern):
-                    resolved = match.resolve()
-                    if resolved not in seen:
-                        seen.add(resolved)
-                        yield resolved
+            patterns = [str(p / pattern) for pattern in GLOBS]
+        else:
+            # Otherwise treat as literal file path or glob pattern
+            patterns = [str(entry)]
 
-        # Case 2: Existing file - yield it directly without pattern matching
-        # Example: entry="index.html" (file exists)
-        # → yields: /absolute/path/to/index.html
-        elif p.is_file():
-            resolved = p.resolve()
-            if resolved not in seen:
+        # Use wcmatch to handle all patterns uniformly (files, globs, braces, etc.)
+        for pattern in patterns:
+            for match_str in glob.glob(pattern, flags=flags):
+
+                match = Path(match_str)
+                if not match.is_file():
+                    continue
+
+                resolved = match.resolve()
+                if resolved in seen:
+                    continue
+
                 seen.add(resolved)
                 yield resolved
-
-        # Case 3: Non-existent path - interpret as recursive glob pattern from cwd
-        # Example: entry="**/*.css" or entry="templates/*.html" (path doesn't exist as literal)
-        # → yields: styles/main.css, components/button.css (all matching files from cwd)
-        else:
-            for match in Path().rglob(str(entry)):
-                if match.is_file():
-                    resolved = match.resolve()
-                    if resolved not in seen:
-                        seen.add(resolved)
-                        yield resolved
 
 
 def get_diff(path: Path, old_text: str, new_text: str) -> Syntax:
@@ -110,7 +105,30 @@ def get_diff(path: Path, old_text: str, new_text: str) -> Syntax:
     return Syntax(code, "diff", theme="ansi_dark", background_color="default")
 
 
-def apply_changes(*, targets: Iterable[Path], config: Config) -> tuple[bool, int, int]:
+def _process_file(f: Path) -> FileResult:
+    """Process a single file for Tailwind class sorting.
+
+    Args:
+        f: Path to the file to process
+
+    Returns:
+        FileResult with processing status and file content
+    """
+    try:
+        old_text = f.read_text(encoding="utf-8")
+    except UnicodeDecodeError:
+        return FileResult(path=f, skipped=True, changed=False, old_text=None, new_text=None)
+
+    new_text = process_text(old_text)
+
+    # Skip files that don't need changes
+    if old_text == new_text:
+        return FileResult(path=f, skipped=True, changed=False, old_text=old_text, new_text=None)
+
+    return FileResult(path=f, skipped=False, changed=True, old_text=old_text, new_text=new_text)
+
+
+def apply_changes(*, targets: Iterable[Path]) -> tuple[bool, int, int]:
     """Process target files and apply Tailwind class sorting changes.
 
     Reads each file, processes it to sort Tailwind classes (skipping any with
@@ -137,46 +155,54 @@ def apply_changes(*, targets: Iterable[Path], config: Config) -> tuple[bool, int
     skipped = 0
     changed = 0
     found_any = False
+    targets_list = list(targets)
 
-    for f in targets:
-        found_any = True
-        try:
-            old_text = f.read_text(encoding="utf-8")
-        except UnicodeDecodeError:
-            config.console.print(
-                f"[red]Unable to read[/red] [filename]{f}[/filename]", highlight=False
-            )
-            skipped += 1
-            continue
+    with ThreadPoolExecutor() as executor:
+        futures = {executor.submit(_process_file, f): f for f in targets_list}
 
-        new_text = process_text(old_text, config)
+        for future in as_completed(futures):
+            found_any = True
+            result = future.result()
 
-        # Skip files that don't need changes
-        if old_text == new_text:
-            if config.verbosity >= VERBOSITY_LOUD:
+            if result.old_text is None:
+                # UnicodeDecodeError occurred
                 config.console.print(
-                    f"[grey30]Already sorted {f}[/grey30]", highlight=False
+                    f"[red]Unable to read[/red] [filename]{result.path}[/filename]",
+                    highlight=False,
                 )
-            skipped += 1
-            continue
+                skipped += 1
+                continue
 
-        changed += 1
+            if result.skipped:
+                if config.verbosity >= VERBOSITY_LOUD:
+                    config.console.print(
+                        f"[grey30]Already sorted {result.path}[/grey30]",
+                        highlight=False,
+                    )
+                skipped += 1
+                continue
 
-        # Write changes if in write mode, otherwise just report
-        if config.write:
-            f.write_text(new_text, encoding="utf-8")
+            changed += 1
 
-        # No report if verbosity is low
-        if config.verbosity == VERBOSITY_NONE:
-            continue
+            # Write changes if in write mode, otherwise just report
+            if config.write:
+                result.path.write_text(result.new_text, encoding="utf-8")
 
-        if config.write:
-            config.console.print(f"[dim]Updated[/dim] [filename]{f}[/filename]")
-        else:
-            config.console.print(f"[dim]Would update[/dim] [filename]{f}[/filename]")
+            # No report if verbosity is low
+            if config.verbosity == VERBOSITY_NONE:
+                continue
 
-        if config.verbosity >= VERBOSITY_ALL:
-            diff = get_diff(f, old_text, new_text)
-            config.console.print(Padding(diff, (1, 0, 1, 4)))
+            if config.write:
+                config.console.print(
+                    f"[dim]Updated[/dim] [filename]{result.path}[/filename]"
+                )
+            else:
+                config.console.print(
+                    f"[dim]Would update[/dim] [filename]{result.path}[/filename]"
+                )
+
+            if config.verbosity >= VERBOSITY_ALL:
+                diff = get_diff(result.path, result.old_text, result.new_text)
+                config.console.print(Padding(diff, (1, 0, 1, 4)))
 
     return found_any, skipped, changed

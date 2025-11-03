@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import random
-from typing import TYPE_CHECKING
 
 import pytest
 
@@ -13,20 +12,42 @@ from tailwhip.tests.conftest import update_config
 
 
 def shuffle(lst: list[str]) -> list[str]:
-    """Shuffle a list of strings."""
-    return random.sample(lst, len(lst))
+    """Shuffle a list and ensuring no element stays in the original position."""
+    if len(lst) <= 1:
+        msg = "Cannot shuffle a list with less than 2 elements."
+        raise AssertionError(msg)
+
+    shuffled = lst.copy()
+
+    tries = 0
+    while True:
+        random.shuffle(shuffled)
+
+        if shuffled != lst:
+            return shuffled
+
+        tries += 1
+
+        if tries > 100:
+            msg = "Unable to produce a shuffled list after 100 tries."
+            raise AssertionError(msg)
 
 
+# Test sorting of classes. Each of these groups contains a valid and correctly
+# ordered set of classes. The testrun is going to shuffle them, sort them and
+# compare the result.
+#
+# To mitigate shuffling randomness, we run the test multiple times.
 CLASS_GROUPS = (
-    # Container comes always first. But non-Tailwind classes even before them.
+    # Container comes always first. But non-tailwind classes are firster.
     [
         "select2-container",  # Not tailwind
-        "container",
+        "container",  # Container is first
         "m-2",
         "font-bold",
         "text-xl",
     ],
-    #  Margin first, then padding. Then in clockwise order.
+    #  Margin first, then padding. X, then Y, then in clockwise order.
     #
     #  m ->
     #      none -> x -> y -> t -> r -> b -> l
@@ -65,7 +86,7 @@ CLASS_GROUPS = (
         "pb-8",
         "pl-16",
     ],
-    # Negative variants retain order.
+    # Negative values in variants retain order.
     [
         "-m-1",
         "sm:-m-2",
@@ -97,14 +118,14 @@ CLASS_GROUPS = (
         "max-h-[800px]",
         "aspect-[3/2]",
     ],
-    # min-*: then max-*:
+    # min-*: then max-*: variant
     [
         "text-base",
         "min-[320px]:text-sm",
         "max-[1024px]:hidden",
         "max-[320px]:text-sm",
     ],
-    # Font first, then Text, Colors Last
+    # Font first, then Text, Colors are always last of each group
     [
         r"font-light",
         r"font-gray-500",

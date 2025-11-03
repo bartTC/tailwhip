@@ -1,6 +1,6 @@
 [project]
 name = "tailwhip"
-version = "0.9a3"
+version = "0.9a5"
 description = "A pure Python Tailwind CSS class sorter that works with any HTML or CSS file, including Django templates and other template languages."
 readme = "README.md"
 authors = [
@@ -23,7 +23,7 @@ classifiers = [
     "Topic :: Internet :: WWW/HTTP",
     "Topic :: Software Development :: Libraries :: Python Modules",
 ]
-requires-python = ">=3.10"
+requires-python = ">=3.11"
 dependencies = [
     "rich",
     "typer",

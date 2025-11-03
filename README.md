@@ -32,6 +32,8 @@ requiring complicated setup.
 
 ## Usage
 
+Tailwhip requires Python 3.11 or later.
+
 ```bash
 $ uvx tailwhip [options] [filepath...]
 
@@ -45,13 +47,13 @@ $ uvx tailwhip templates/ -vv
 $ uvx tailwhip templates/ --write
 
 # Sort classes in .scss files
-$ uvx tailwhip templates/**/*.scss
+$ uvx tailwhip "templates/**/*.scss"
 
 # Standard glob patterns are supported
-$ uvx tailwhip templates/**/*.html templates/**/*.css myapp/**/*.xhtml
+$ uvx tailwhip "static/**/*.{css,scss}" "templates/**/*.htm[l]"
 ```
 
-You can also install it with pip or use it as a Python library:
+You can also install it with pip and use it as a Python library:
 
 ```bash
 $ pip install tailwhip

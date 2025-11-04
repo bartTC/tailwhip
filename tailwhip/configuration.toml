@@ -1,63 +1,149 @@
-# Tailwhip configuration file
+# ============================================================================
+# Tailwhip Default Configuration
+# ============================================================================
+#
+# This is the base configuration file for Tailwhip. These settings define how
+# Tailwind CSS classes are sorted and which files are processed.
+#
+# CUSTOMIZATION:
+#   You can override these settings in two ways:
+#   1. Create a [tool.tailwhip] section in your project's pyproject.toml
+#   2. Create a custom config file and pass it via --configuration flag
+#
+# PRECEDENCE (lowest to highest):
+#   defaults (this file) < pyproject.toml < custom config < CLI arguments
+#
+# TIP: Most users won't need to modify these defaults. The sorting algorithm
+# follows Tailwind best practices and works well out of the box.
+# ============================================================================
 
-# File glob patterns to process
-globs = [
+
+# ----------------------------------------------------------------------------
+# Output Settings
+# ----------------------------------------------------------------------------
+
+# Verbosity level (0-3): Controls how much information is displayed.
+#   0 = quiet (errors only)
+#   1 = normal (default, shows summary)
+#   2 = verbose (shows file-by-file changes)
+#   3 = debug (shows detailed processing info)
+#
+# Override with: CLI flags -v (verbose), -vv (diff), -vvv (debug) or -q (quiet)
+verbosity = 1
+
+# Write mode: Whether to modify files in place or just show what would change.
+#   false = dry-run mode (safe, shows changes without writing)
+#   true = write changes to files
+#
+# Override with: CLI flag --write or -w
+# RECOMMENDATION: Keep this false for safety. Use --write when you're ready.
+write_mode = false
+
+
+# ----------------------------------------------------------------------------
+# File Discovery
+# ----------------------------------------------------------------------------
+
+# Default glob patterns: Which files to process when scanning directories.
+# These patterns follow standard glob syntax (** = recursive match).
+#
+# Override with: Provide explicit paths as CLI arguments, or customize this
+# list in pyproject.toml to match your project structure.
+#
+# EXAMPLES:
+#   - Add template files: "**/*.jinja2", "**/*.liquid"
+#   - Add JavaScript with classes: "**/*.jsx", "**/*.tsx"
+#   - Exclude directories: "!**/node_modules/**"
+default_globs = [
     "**/*.html",
     "**/*.css",
 ]
 
-# Skip if a template expression appears inside the class attribute
-# List of strings that indicate template expressions to skip
+
+# ----------------------------------------------------------------------------
+# Template Expression Handling
+# ----------------------------------------------------------------------------
+
+# Skip expressions: Template syntax to detect and skip during sorting.
+# If any of these strings appear inside a class attribute, the entire
+# class attribute will be left unchanged to avoid breaking your templates.
+#
+# Override with: Add your template engine's syntax to this list via
+# pyproject.toml or custom config.
+#
+# EXAMPLES:
+#   Django/Jinja2: "{{", "{%"
+#   ERB/EJS: "<%"
+#   Handlebars: "{{"
+#   Thymeleaf: "th:"
+#
+# WHY SKIP? Template expressions can dynamically generate class names, and
+# sorting them could break functionality or create invalid syntax.
 skip_expressions = [
-    "{{",
-    "{%",
-    "<%",
+    "{{",  # Django, Jinja2, Liquid, Handlebars
+    "{%",  # Django, Jinja2, Liquid
+    "<%",  # ERB, EJS
 ]
 
-# Recognize Tailwind variants (order doesn't matter; we sort lexicographically)
-# e.g. "sm:hover:focus:text-blue-500" => variants ["focus", "hover", "sm"]
-variant_sep = ":"
 
-# A lightweight utility ranking derived from common Tailwind "best practice" ordering.
-# This is not exhaustive, but it's practical. Unknown utilities fall to the end.
+# ----------------------------------------------------------------------------
+# Variant Recognition
+# ----------------------------------------------------------------------------
+
+# Variant separator: The character that separates variants from utility classes.
+# In Tailwind CSS, this is always ":" (e.g., hover:, sm:, dark:focus:)
 #
-# SORTING MECHANISM: ------------------
+# Override with: Only change this if you're using a custom Tailwind configuration
+# that modifies the separator (rare).
 #
-# Each regex pattern in this list defines a GROUP. Groups are matched in order (top
-# to bottom). When a utility class is encountered, it's tested against each pattern
-# until a match is found. The matched group's index becomes the utility's rank (lower
-# index = sorts earlier).
+# RECOMMENDATION: Leave this as ":" unless you have a specific reason to change it.
+variant_separator = ":"
+
+
+# ----------------------------------------------------------------------------
+# Utility Class Ordering
+# ----------------------------------------------------------------------------
 #
-# WHY MULTIPLE PATTERNS IN ONE GROUP?
+# This is the heart of Tailwhip's sorting algorithm. These regex patterns define
+# the order in which Tailwind utility classes are sorted.
 #
-# Some logical categories (e.g., "Layout & display") contain multiple related patterns.
-# These are kept as separate regex entries rather than one mega-pattern because:
+# HOW IT WORKS:
+#   1. Each pattern defines a GROUP (e.g., "Layout & Display", "Spacing", etc.)
+#   2. Patterns are matched top-to-bottom, and the first match determines the group
+#   3. Lower index = sorts earlier (e.g., "container" sorts before "p-4")
+#   4. Within each group, classes are sorted:
+#      - Non-color utilities before color utilities
+#      - Alphabetically by full class name
 #
-#   1. Readability: Easier to see what utilities belong together
-#   2. Maintainability: Simpler to add/remove/modify individual patterns
-#   3. Order control: You can fine-tune the sort order within a category
-#      (e.g., "flex" before "grid" before "table")
+# DESIGN PHILOSOPHY:
+#   - Follows Tailwind's recommended ordering: layout → spacing → typography → visual
+#   - Keeps related utilities together (e.g., all flexbox, all spacing)
+#   - Optimized for readability and maintainability
 #
-# WHY SINGLE PATTERNS?
+# CUSTOMIZATION:
+#   Override with: Most users should NOT modify these patterns. They're based on
+#   Tailwind best practices and are battle-tested. If you have custom utilities,
+#   consider adding custom_colors instead of modifying this list.
 #
-# Single patterns are used when:
+#   If you do customize: Use pyproject.toml [tool.tailwhip] section to override
+#   specific patterns. Test thoroughly, as incorrect patterns can affect sorting.
 #
-#   - The utility is standalone or unique (e.g., "container")
-#   - It needs precise positioning in the sort order
-#   - It's a catch-all for a prefix (e.g., "text-" matches text-sm, text-lg, etc.)
+# PATTERN SYNTAX:
+#   - Patterns are regex strings (Python syntax)
+#   - Use capturing groups to match utility prefixes
+#   - Example: '(flex|inline-flex)' matches "flex", "flex-col", "inline-flex", etc.
 #
-# WITHIN-GROUP SORTING:
+# WITHIN-GROUP SORTING EXAMPLE:
+#   Given: "flex-row flex inline-flex flex-col"
+#   All match: '(flex|inline-flex)'
+#   Result: "flex flex-col flex-row inline-flex" (alphabetical)
 #
-# Classes matching the SAME group index are then sorted:
-#
-#   1. Non-color utilities before color utilities
-#   2. Alphabetically by the full class name
-#
-# Example: "flex", "flex-col", "flex-row" all match r"(flex|inline-flex)" and sort alphabetically.
-group_order = [
+# UNKNOWN UTILITIES:
+#   Classes that don't match any pattern are sorted alphabetically at the front.
+
+utility_groups = [
     # 0) Components (Tailwind "components" layer comes before utilities)
     '(^| )(container)( |$)',
-
     # 1) Layout & display
     '(hidden|visible|invisible)',
     '(z)-',
@@ -80,16 +166,13 @@ group_order = [
     '(scroll|scroll-m|scroll-p|scroll-smooth)',
     # scroll behavior & margins
     '(snap)-',
-
     # 2) Flexbox & Grid
     '(order|grow|shrink|basis)(-|$)',
     '(grid-cols|grid-rows|grid-flow|auto-cols|auto-rows)-',
     '(col-(span|start|end)|row-(span|start|end))-',
     '(gap|space-[xy])-',
-
     # 3) Alignment & distribution (box alignment)
     '(place|content|items|self|justify|align)-',
-
     # 4) Sizing
     '(size)-',
     '(w)-',
@@ -99,7 +182,6 @@ group_order = [
     '(min-h)-',
     '(max-h)-',
     '(aspect)-',
-
     # 5) Spacing (x,y,t,r,b,l)
     '(m)-',
     '(mx)-',
@@ -115,7 +197,6 @@ group_order = [
     '(pr)-',
     '(pb)-',
     '(pl)-',
-
     # 6) Typography
     '(font)-',
     '(text-(balance|pretty|wrap))',
@@ -134,7 +215,6 @@ group_order = [
     '(tabular-nums|slashed-zero|lining-nums|oldstyle-nums|proportional-nums|ordinal)',
     # content-['…'] utilities
     '(content)-',
-
     # 7) Backgrounds
     # includes bg-clip, -origin, -repeat, -size, -position, -attachment, colors
     '(bg)-',
@@ -142,26 +222,21 @@ group_order = [
     '(from)-',
     '(to)-',
     '(via)-',
-
     # 8) Borders & outlines & rings & divide
     '(rounded)-',
     '(border)-',
     '(divide)-',
     '(ring)-',
     '(outline)-',
-
     # 9) Effects
     '(shadow)-',
     '(opacity)-',
     '(mix-blend)-',
     '(backdrop|filter|blur|brightness|contrast|grayscale|hue-rotate|invert|saturate|sepia|drop-shadow)-',
-
     # 10) Transforms
     '(transform|scale|rotate|translate|skew|origin)-',
-
     # 11) Transitions & animation
     '(transition|duration|ease|delay|animate)-',
-
     # 12) Interactivity & misc
     '(cursor|select|pointer-events|resize|appearance|accent|caret|touch)-',
     '(object)-',
@@ -173,30 +248,55 @@ group_order = [
 
     # 13) Accessibility helpers (kept near the end so utility groups dominate)
     '(sr-only|not-sr-only)',
-
     # 14) Group/peer & attribute base selectors (as raw classes, not variants)
     '(peer|group|aria-|data-)(:|$)',
 ]
 
-variant_prefix_order = [
+# ----------------------------------------------------------------------------
+# Variant Ordering
+# ----------------------------------------------------------------------------
+#
+# These patterns define the order of Tailwind variants (responsive, state, etc.).
+# Variants are the prefixes before utility classes, like "hover:", "md:", "dark:".
+#
+# HOW IT WORKS:
+#   - Patterns are matched top-to-bottom
+#   - More specific variants come first (e.g., container queries before breakpoints)
+#   - Classes with the same utility are sorted by variant order
+#
+# DESIGN PHILOSOPHY:
+#   - Container queries → media queries → breakpoints → states → pseudo-elements
+#   - Mobile-first approach (sm before md before lg)
+#   - Interactive states near the end (hover, focus, active)
+#
+# CUSTOMIZATION:
+#   Override with: Most users won't need to modify this. The order follows Tailwind's
+#   conventions and is optimized for readability. Custom variants from plugins are
+#   matched by catch-all patterns.
+#
+#   If you do customize: Add patterns for your custom variants in pyproject.toml.
+#   Place them in the appropriate position based on specificity.
+#
+# EXAMPLE:
+#   Given: "p-4 hover:p-4 md:p-4 md:hover:p-4"
+#   Result: "p-4 md:p-4 hover:p-4 md:hover:p-4"
+#   (base → responsive → interactive → combined)
+
+variant_groups = [
     # Container queries (most specific, come first)
     '@container:',
     '@\w+:',
-
     # Direction & theme
     '(rtl|ltr):',
     'dark:',
-
     # Media-like variants
     '(portrait|landscape|print):',
     '(motion-safe|motion-reduce):',
     '(contrast-more|contrast-less):',
-
     # Container & size queries (if using v4 container queries)
     '(supports-\[.*\]|supports-.*:)',
     # supports: variant patterns
     '(size-.*:|cq-.*:)',
-
     # Breakpoints (mobile-first)
     'min-\[.*\]:',
     'max-\[.*\]:',
@@ -205,7 +305,6 @@ variant_prefix_order = [
     'lg:',
     'xl:',
     '2xl:',
-
     # Structural/state
     '(first):',
     '(last):',
@@ -233,7 +332,29 @@ variant_prefix_order = [
     '(marker:|selection:|file:|placeholder:|backdrop:|first-letter:|first-line:)',
 ]
 
-# Standard Tailwind color names (extracted from the palette)
+# ----------------------------------------------------------------------------
+# Color Recognition
+# ----------------------------------------------------------------------------
+#
+# These lists define which color names Tailwhip recognizes. Colors are sorted
+# differently than other utilities (they come after non-color utilities).
+#
+# HOW IT WORKS:
+#   - Colors are detected by matching utility class names against these lists
+#   - Example: "text-blue-500" contains "blue" → recognized as color utility
+#   - Non-color utilities are sorted before color utilities in the same group
+#
+# CUSTOMIZATION:
+#   Override with: If you have custom colors in your Tailwind config, add them
+#   to the custom_colors list in your pyproject.toml or custom config file.
+#
+#   Example in pyproject.toml:
+#     [tool.tailwhip]
+#     custom_colors = ["brand", "accent", "company"]
+#
+# RECOMMENDATION: Only modify custom_colors, not tailwind_colors. The
+# tailwind_colors list is based on the official Tailwind palette.
+
 tailwind_colors = [
     "transparent",
     "current",
@@ -264,10 +385,43 @@ tailwind_colors = [
     "yellow",
 ]
 
-# Regex pattern to match class attributes in HTML
-# Pattern: class="..." or class='...'
-class_attr_re = '''(?P<full>\bclass\s*=\s*(?P<quote>["'])(?P<val>.*?)(?P=quote))'''
+# Custom colors defined in your Tailwind configuration.
+# CUSTOMIZE THIS: Add your project's custom color names here.
+#
+# Example: If your tailwind.config.js has:
+#   colors: {
+#     brand: '#FF6B6B',
+#     accent: '#4ECDC4'
+#   }
+#
+# Add them here:
+#   custom_colors = ["brand", "accent"]
+custom_colors = [
+    "primary",
+]
 
-# Regex pattern to match @apply directives in CSS
-# Pattern: @apply <classes>;
-apply_re = '''@apply\s+(?P<classes>[^;]+);'''
+
+# ----------------------------------------------------------------------------
+# Pattern Matching (Advanced)
+# ----------------------------------------------------------------------------
+#
+# These regex patterns define how Tailwhip finds class attributes and @apply
+# directives in your code. These are internal implementation details.
+#
+# CUSTOMIZATION:
+#   Override with: DON'T modify these unless you know what you're doing and have
+#   a very specific use case (e.g., custom template syntax). Incorrect patterns
+#   can break the sorting functionality entirely.
+#
+# RECOMMENDATION: Leave these alone. They're battle-tested and cover the vast
+# majority of use cases.
+
+# Regex pattern to match class attributes in HTML.
+# Matches: class="..." or class='...'
+# Captures: full match, quote type, and class values
+class_regex = '''(?P<full>\bclass\s*=\s*(?P<quote>["'])(?P<val>.*?)(?P=quote))'''
+
+# Regex pattern to match @apply directives in CSS.
+# Matches: @apply <classes>;
+# Captures: the classes portion
+apply_regex = '''@apply\s+(?P<classes>[^;]+);'''

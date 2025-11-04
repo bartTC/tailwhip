@@ -14,8 +14,6 @@ classifiers = [
     "Intended Audience :: Developers",
     "Operating System :: OS Independent",
     "Programming Language :: Python",
-    "Programming Language :: Python :: 3.9",
-    "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
     "Programming Language :: Python :: 3.13",
@@ -58,10 +56,11 @@ lint.ignore = [
     "COM812", # Conflicts with ruff format
     "E501", # Line too long (>88)
     "D203", # incorrect-blank-line-before-class (conflicts with D211)
-    "D213", # multi-line-summary-second-line (conflicts with D212)
+    "D212", # Don't require summary on first line
     "ERA001", # Found commented-out code
     "FBT", # Flake Boolean Trap (don't use arg=True in functions)
     "FIX", # Line contains TODO/FIXME. Consider resolving.
+
 ]
 
 [tool.ruff.lint.extend-per-file-ignores]

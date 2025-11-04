@@ -2,11 +2,12 @@
 
 from __future__ import annotations
 
-from tailwhip import configuration
+from tailwhip.configuration import config
 
 
 def variant_rank(variant: str) -> int:
-    """Determine the sort order rank of a variant.
+    """
+    Determine the sort order rank of a variant.
 
     Args:
         variant: A variant string (e.g., 'hover', 'sm', 'dark')
@@ -17,14 +18,15 @@ def variant_rank(variant: str) -> int:
 
     """
     variant_with_colon = f"{variant}:"
-    for i, pat in enumerate(configuration.VARIANT_PATTERNS):
+    for i, pat in enumerate(config.VARIANT_PATTERNS):
         if pat.match(variant_with_colon):
             return i
-    return len(configuration.VARIANT_PATTERNS) + 1  # unknowns to the end
+    return len(config.VARIANT_PATTERNS) + 1  # unknowns to the end
 
 
 def variant_base(classname: str) -> tuple[list[str], str]:
-    """Split a Tailwind CSS class into its variants and base utility.
+    """
+    Split a Tailwind CSS class into its variants and base utility.
 
     Variants are modifiers that apply conditions to utilities (e.g., responsive
     breakpoints, pseudo-classes). This function separates them from the base utility
@@ -53,7 +55,7 @@ def variant_base(classname: str) -> tuple[list[str], str]:
         (['dark', 'lg', 'hover'], 'bg-gray-900')
 
     """
-    parts = classname.split(configuration.VARIANT_SEP)
+    parts = classname.split(config.variant_separator)
     base = parts[-1]
     unique_variants = list(dict.fromkeys(parts[:-1]))  # dedupe while preserving order
     variants = sorted(unique_variants, key=lambda v: (variant_rank(v), v))
@@ -61,7 +63,8 @@ def variant_base(classname: str) -> tuple[list[str], str]:
 
 
 def is_color_utility(utility: str, all_colors: set[str]) -> bool:
-    """Check if a utility is a color-related utility.
+    """
+    Check if a utility is a color-related utility.
 
     Color utilities follow patterns like:
     - text-{color}-{shade}: text-gray-600, text-blue-500
@@ -105,7 +108,8 @@ def is_color_utility(utility: str, all_colors: set[str]) -> bool:
 
 
 def utility_rank(utility: str) -> int:
-    """Determine the sort order rank of a Tailwind CSS utility class.
+    """
+    Determine the sort order rank of a Tailwind CSS utility class.
 
     Utilities are categorized into groups (layout, spacing, typography, etc.) defined
     in GROUP_PATTERNS. Each group has a rank that determines its position in sorted
@@ -138,7 +142,7 @@ def utility_rank(utility: str) -> int:
     # Strip leading negative sign for matching, so -mt-4 matches the same pattern as mt-4
     utility_to_match = utility.lstrip("-")
 
-    for i, pat in enumerate(configuration.GROUP_PATTERNS):
+    for i, pat in enumerate(config.UTILITY_PATTERNS):
         if pat.match(utility_to_match):
             return i
     return -1  # len(configuration.GROUP_PATTERNS) + 1  # Unknown classes to the front
@@ -147,7 +151,8 @@ def utility_rank(utility: str) -> int:
 def sort_key(
     cls: str, all_colors: set[str]
 ) -> tuple[tuple[tuple[int, str], ...], int, bool, str]:
-    """Generate a sort key for a Tailwind CSS class.
+    """
+    Generate a sort key for a Tailwind CSS class.
 
     Creates a tuple that enables proper sorting of Tailwind classes.
     Classes are sorted by:
@@ -188,7 +193,8 @@ def sort_key(
 
 
 def sort_classes(class_list: list[str]) -> list[str]:
-    """Sort a list of Tailwind CSS classes in a consistent, logical order.
+    """
+    Sort a list of Tailwind CSS classes in a consistent, logical order.
 
     Classes are deduplicated (preserving the first occurrence) and sorted by:
 
@@ -220,7 +226,6 @@ def sort_classes(class_list: list[str]) -> list[str]:
 
     """
     # Use colors from configuration (includes custom colors if configured)
-    all_colors = configuration.TAILWIND_COLORS
-
+    all_colors = config.tailwind_colors | config.custom_colors
     deduped = list(dict.fromkeys(class_list))
     return sorted(deduped, key=lambda cls: sort_key(cls, all_colors))

@@ -12,8 +12,7 @@ from rich.padding import Padding
 from rich.syntax import Syntax
 from wcmatch import glob
 
-from tailwhip.configuration import GLOBS, VERBOSITY_ALL, VERBOSITY_LOUD, VERBOSITY_NONE
-from tailwhip.context import get_config
+from tailwhip.configuration import VerbosityLevel, config
 from tailwhip.process import process_text
 
 if TYPE_CHECKING:
@@ -28,8 +27,9 @@ class FileResult:
     changed: bool
 
 
-def find_files() -> Generator[Path]:
-    """Find all HTML/CSS files from a list of paths.
+def find_files(*, paths: list[Path]) -> Generator[Path]:
+    """
+    Find all HTML/CSS files from a list of paths.
 
     Processes multiple path inputs (files, directories, or glob patterns), expands each
     one, and returns a deduplicated generator of all matching HTML/CSS files. If no paths
@@ -55,17 +55,16 @@ def find_files() -> Generator[Path]:
         [PosixPath('home.html'), PosixPath('static/app.css')]
 
     """
-    config = get_config()
     seen = set()
     flags = glob.GLOBSTAR | glob.BRACE | glob.EXTGLOB | glob.DOTGLOB
 
-    for entry in config.paths:
+    for entry in paths:
         p = Path(entry)
 
         # If it's a directory, expand it with default GLOBS patterns
         # Example: entry="src/" → patterns=["src/**/*.html", "src/**/*.css"]
         if p.is_dir():
-            patterns = [str(p / pattern) for pattern in GLOBS]
+            patterns = [str(p / pattern) for pattern in config.default_globs]
         else:
             # Otherwise treat as literal file path or glob pattern
             patterns = [str(entry)]
@@ -102,7 +101,8 @@ def get_diff(path: Path, old_text: str, new_text: str) -> Syntax:
 
 
 def _process_file(f: Path) -> FileResult:
-    """Process a single file for Tailwind class sorting.
+    """
+    Process a single file for Tailwind class sorting.
 
     Args:
         f: Path to the file to process
@@ -111,8 +111,6 @@ def _process_file(f: Path) -> FileResult:
         FileResult with processing status and file content
 
     """
-    config = get_config()
-
     try:
         old_text = f.read_text(encoding="utf-8")
     except UnicodeDecodeError:
@@ -126,7 +124,7 @@ def _process_file(f: Path) -> FileResult:
 
     # Skip files that don't need changes
     if old_text == new_text:
-        if config.verbosity >= VERBOSITY_LOUD:
+        if config["verbosity"] >= VerbosityLevel.VERBOSE:
             config.console.print(
                 f"[grey30]Already sorted {f}[/grey30]",
                 highlight=False,
@@ -134,17 +132,17 @@ def _process_file(f: Path) -> FileResult:
         return FileResult(skipped=True, changed=False)
 
     # Write changes if in write mode
-    if config.write:
+    if config["write_mode"]:
         f.write_text(new_text, encoding="utf-8")
 
     # Log the change
-    if config.verbosity > VERBOSITY_NONE:
-        if config.write:
+    if config.verbosity >= VerbosityLevel.NORMAL:
+        if config.write_mode:
             config.console.print(f"[dim]Updated[/dim] [filename]{f}[/filename]")
         else:
             config.console.print(f"[dim]Would update[/dim] [filename]{f}[/filename]")
 
-        if config.verbosity >= VERBOSITY_ALL:
+        if config.verbosity >= VerbosityLevel.VERBOSE:
             diff = get_diff(f, old_text, new_text)
             config.console.print(Padding(diff, (1, 0, 1, 4)))
 
@@ -152,7 +150,8 @@ def _process_file(f: Path) -> FileResult:
 
 
 def apply_changes(*, targets: Iterable[Path]) -> tuple[bool, int, int]:
-    """Process target files and apply Tailwind class sorting changes.
+    """
+    Process target files and apply Tailwind class sorting changes.
 
     Reads each file, processes it to sort Tailwind classes (skipping any with
     template syntax), and either writes the changes back or reports what would be
@@ -174,7 +173,6 @@ def apply_changes(*, targets: Iterable[Path]) -> tuple[bool, int, int]:
         (1, 1)  # 1 skipped (no changes), 1 changed
 
     """
-    get_config()
     skipped = 0
     changed = 0
     found_any = False

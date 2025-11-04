@@ -1,4 +1,26 @@
-"""Test sorting of classes."""
+"""
+Tests for Tailwind CSS class sorting.
+
+This module tests the core sorting algorithm that reorders Tailwind classes
+according to utility groups, variants, and color priorities.
+
+Test Coverage:
+- Utility group ordering (layout, spacing, typography, etc.)
+- Variant sorting (responsive, hover, focus, etc.)
+- Color vs non-color utility prioritization
+- Alphabetical sorting within groups
+- Custom color handling
+- CSS @apply directive processing
+- HTML class attribute processing
+- Template markup handling (skip expressions)
+- Complex real-world examples (kitchen sink)
+
+The sorting algorithm follows this hierarchy:
+1. Group by utility type (using utility_groups regex patterns)
+2. Sort by variant specificity (using variant_groups patterns)
+3. Separate colors from non-colors (colors come last)
+4. Alphabetically within each category
+"""
 
 from __future__ import annotations
 
@@ -6,6 +28,7 @@ import random
 
 import pytest
 
+from tailwhip.configuration import update_configuration
 from tailwhip.process import process_css, process_html, process_text
 from tailwhip.sorting import sort_classes
 
@@ -296,7 +319,8 @@ CLASS_GROUPS = (
 @pytest.mark.parametrize("classes", CLASS_GROUPS)
 @pytest.mark.parametrize("iteration", range(10))
 def test_sorting(classes: list[str], iteration: int) -> None:  # noqa: ARG001
-    """Test sorting of classes.
+    """
+    Test sorting of classes.
 
     The classes in the parameter are in the correct order. We shuffle them before
     we do the comparison. To mitigate randomness, we run the test multiple times.
@@ -308,10 +332,9 @@ def test_sorting(classes: list[str], iteration: int) -> None:  # noqa: ARG001
 @pytest.mark.parametrize("iteration", range(10))
 def test_sorting_custom_colors(iteration: int, monkeypatch: pytest.MonkeyPatch) -> None:  # noqa: ARG001
     """Custom colors are sorted along with other colors."""
-    # Mock configuration.TAILWIND_COLORS to include custom colors
-    from tailwhip import configuration
-    custom_colors = configuration.TAILWIND_COLORS | {"primary", "secondary-500", "border-almond-500"}
-    monkeypatch.setattr(configuration, "TAILWIND_COLORS", custom_colors)
+    update_configuration(
+        {"custom_colors": {"primary", "secondary-500", "border-almond-500"}}
+    )
 
     classes = [
         "border-1",  # Non colors

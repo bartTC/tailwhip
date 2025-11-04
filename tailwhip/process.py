@@ -4,12 +4,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from tailwhip.configuration import (
-    APPLY_RE,
-    CLASS_ATTR_RE,
-    SKIP_EXPRESSIONS,
-)
-from tailwhip.context import get_config
+from tailwhip.configuration import config
 from tailwhip.sorting import sort_classes
 
 if TYPE_CHECKING:
@@ -17,7 +12,8 @@ if TYPE_CHECKING:
 
 
 def split_classes(s: str) -> list[str]:
-    """Split a string of space-separated CSS classes into a list.
+    """
+    Split a string of space-separated CSS classes into a list.
 
     Handles multiple consecutive spaces and strips leading/trailing whitespace.
     Empty strings are filtered out from the result.
@@ -49,7 +45,8 @@ def split_classes(s: str) -> list[str]:
 
 
 def process_class_attr(match: re.Match[str]) -> str:
-    """Process and sort CSS classes within an HTML class attribute.
+    """
+    Process and sort CSS classes within an HTML class attribute.
 
     Extracts class names from an HTML class attribute regex match, sorts them using
     Tailwind CSS ordering rules, and reconstructs the attribute. Preserves the original
@@ -76,13 +73,12 @@ def process_class_attr(match: re.Match[str]) -> str:
         >>> # Output: class=""  # Unchanged
 
     """
-    config = get_config()
     full = match.group("full")
     quote = match.group("quote")
     val = match.group("val")
 
     # Skip if a template expression appears inside the class attribute
-    if any(skip_expr in val for skip_expr in SKIP_EXPRESSIONS):
+    if any(skip_expr in val for skip_expr in config.skip_expressions):
         return full
 
     classes = split_classes(val)
@@ -97,7 +93,8 @@ def process_class_attr(match: re.Match[str]) -> str:
 
 
 def process_apply_directive(match: re.Match[str]) -> str:
-    """Process and sort CSS classes within a Tailwind @apply directive.
+    """
+    Process and sort CSS classes within a Tailwind @apply directive.
 
     Extracts class names from a CSS @apply directive regex match, sorts them using
     Tailwind CSS ordering rules, and reconstructs the directive.
@@ -123,11 +120,10 @@ def process_apply_directive(match: re.Match[str]) -> str:
         >>> # Output: @apply;  # Unchanged
 
     """
-    config = get_config()
     classes_str = match.group("classes").strip()
 
     # Skip if a template expression appears inside the class attribute
-    if any(skip_expr in classes_str for skip_expr in SKIP_EXPRESSIONS):
+    if any(skip_expr in classes_str for skip_expr in config.skip_expressions):
         return match.group(0)
 
     classes = split_classes(classes_str)
@@ -142,7 +138,8 @@ def process_apply_directive(match: re.Match[str]) -> str:
 
 
 def process_html(text: str) -> str:
-    """Process all HTML class attributes in the given text.
+    """
+    Process all HTML class attributes in the given text.
 
     Finds all class attributes using regex and sorts their CSS classes according to
     Tailwind CSS ordering rules. Operates on each class attribute independently,
@@ -170,11 +167,12 @@ def process_html(text: str) -> str:
         '<div class="flex {{ extra_classes }}"></div>'
 
     """
-    return CLASS_ATTR_RE.sub(process_class_attr, text)
+    return config.CLASS_ATTR_RE.sub(process_class_attr, text)
 
 
 def process_css(text: str) -> str:
-    """Process all @apply directives in CSS content.
+    """
+    Process all @apply directives in CSS content.
 
     Finds all Tailwind @apply directives using regex and sorts their CSS classes
     according to Tailwind CSS ordering rules.
@@ -201,11 +199,12 @@ def process_css(text: str) -> str:
         # Returns with sorted classes in @apply
 
     """
-    return APPLY_RE.sub(process_apply_directive, text)
+    return config.APPLY_RE.sub(process_apply_directive, text)
 
 
 def process_text(text: str) -> str:
-    """Process file content by sorting Tailwind classes.
+    """
+    Process file content by sorting Tailwind classes.
 
     Processes both HTML class attributes and CSS @apply directives in the same pass.
     This works for any file type since unmatched patterns are simply ignored.

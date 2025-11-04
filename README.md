@@ -63,3 +63,80 @@ $ python -m tailwhip templates/
 ```
 
 See `--help` for all options and features.
+
+## Configuration
+
+Tailwhip works great out of the box with sensible defaults, but you can customize its behavior to match your project's needs. There are two ways to configure Tailwhip:
+
+### Option 1: `pyproject.toml`
+
+Add a `[tool.tailwhip]` section to your project's `pyproject.toml`:
+
+```toml
+[tool.tailwhip]
+# Increase verbosity to see detailed changes
+verbosity = 2
+
+# Customize file patterns to include JSX/TSX files
+default_globs = [
+    "**/*.html",
+    "**/*.css",
+    "**/*.jsx",
+    "**/*.tsx",
+]
+
+# Add your custom Tailwind colors
+custom_colors = ["brand", "accent", "company"]
+
+# Add template syntax for your templating engine
+skip_expressions = ["{{", "{%", "<%", "[[", "]]"]
+```
+
+### Option 2: Custom Configuration File
+
+Create a `tailwhip.toml` file anywhere in your project and pass it via the `--configuration` flag:
+
+```toml
+# tailwhip.toml
+verbosity = 3
+
+default_globs = [
+    "**/*.html",
+    "**/*.css",
+    "**/*.liquid",  # Shopify Liquid templates
+]
+
+custom_colors = ["primary", "secondary", "accent"]
+
+skip_expressions = ["{{", "{%", "<%", "{-"]  # Add Nunjucks syntax
+```
+
+Then use it with:
+
+```bash
+$ tailwhip templates/ --configuration tailwhip.toml
+```
+
+### Configuration Precedence
+
+Settings are loaded in this order (later sources override earlier ones):
+
+1. **Default values** (built into Tailwhip)
+2. **`pyproject.toml`** (`[tool.tailwhip]` section)
+3. **Custom config file** (via `--configuration` flag)
+4. **CLI arguments** (e.g., `--write`, `-v`, `--quiet`)
+
+CLI arguments always take precedence, so you can override any config value on the command line.
+
+### Available Configuration Options
+
+For a complete list of all configuration options with detailed explanations, see the [default configuration file](https://github.com/bartTC/tailwhip/blob/main/tailwhip/configuration.toml). It includes:
+
+- **Output settings**: `verbosity`, `write_mode`
+- **File discovery**: `default_globs`
+- **Template handling**: `skip_expressions`
+- **Sorting behavior**: `utility_groups`, `variant_groups`
+- **Color recognition**: `tailwind_colors`, `custom_colors`
+- **Pattern matching**: `class_regex`, `apply_regex` (advanced)
+
+Most users only need to customize `custom_colors` and occasionally `default_globs` or `skip_expressions`. The sorting algorithm is based on Tailwind best practices and rarely needs modification.

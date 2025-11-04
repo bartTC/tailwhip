@@ -3,43 +3,99 @@
 from __future__ import annotations
 
 import re
+import tomllib
 from pathlib import Path
 
-import tomllib
+from dynaconf import Dynaconf
 from rich.theme import Theme
 
+# Path to default config
+_default_config_path = Path(__file__).parent / "constants.toml"
 
-def _deep_merge(base: dict, override: dict) -> dict:
-    """Deep merge two dictionaries, with override taking precedence.
+# Initialize dynaconf
+# Configuration priority: custom > pyproject.toml > defaults
+settings = Dynaconf(
+    settings_files=[str(_default_config_path)],
+    includes=["pyproject.toml"],  # Auto-discover pyproject.toml
+    merge_enabled=False,  # Replace values instead of merging lists
+    envvar_prefix="TAILWHIP",
+    root_path=Path.cwd(),
+    load_dotenv=False,
+    lowercase_read=True,
+)
+
+
+def reload_config(
+    custom_config_path: Path | None = None,
+    search_path: Path | None = None,
+) -> None:
+    """Reload configuration from disk, optionally with a custom config file.
+
+    Configuration priority: custom > pyproject.toml > defaults
 
     Args:
-        base: Base dictionary with default values
-        override: Dictionary with values to override
-
-    Returns:
-        Merged dictionary
+        custom_config_path: Optional path to a custom TOML config file
+        search_path: Directory to start searching for pyproject.toml
     """
-    result = base.copy()
-    for key, value in override.items():
-        if key in result and isinstance(result[key], dict) and isinstance(value, dict):
-            result[key] = _deep_merge(result[key], value)
-        else:
-            result[key] = value
-    return result
+    global settings
+
+    if custom_config_path and not custom_config_path.exists():
+        msg = f"Custom config file not found: {custom_config_path}"
+        raise FileNotFoundError(msg)
+
+    # Build settings files list  (priority: defaults < pyproject < custom)
+    settings_files = [str(_default_config_path)]
+
+    # Search for pyproject.toml and extract [tool.tailwhip] section
+    pyproject_path = _find_pyproject_toml(search_path or Path.cwd())
+    pyproject_config = None
+    if pyproject_path:
+        pyproject_config = _extract_tool_tailwhip(pyproject_path)
+
+    # Load custom config keys if present
+    custom_keys = set()
+    if custom_config_path:
+        settings_files.append(str(custom_config_path))
+        # Read custom config to know which keys it defines
+        try:
+            with custom_config_path.open("rb") as f:
+                custom_data = tomllib.load(f)
+            custom_keys = set(custom_data.keys())
+        except Exception:
+            pass  # If can't read, dynaconf will handle error
+
+    # Create new Dynaconf instance (configure() doesn't fully reload)
+    # Note: merge_enabled=False so lists are replaced, not merged
+    settings = Dynaconf(
+        settings_files=settings_files,
+        merge_enabled=False,  # Replace values instead of merging lists
+        envvar_prefix="TAILWHIP",
+        root_path=search_path or Path.cwd(),
+        load_dotenv=False,
+        lowercase_read=True,
+    )
+
+    # Manually apply pyproject [tool.tailwhip] config for keys not in custom config
+    # This gives us the priority: custom > pyproject > defaults
+    if pyproject_config:
+        for key, value in pyproject_config.items():
+            # Only set if not defined in custom config
+            if key not in custom_keys:
+                settings.set(key, value)
+
+    # Update module-level constants from settings
+    _update_constants()
 
 
-def _find_pyproject_toml(start_path: Path | None = None) -> Path | None:
+def _find_pyproject_toml(start_path: Path) -> Path | None:
     """Find pyproject.toml by walking up the directory tree.
 
     Args:
-        start_path: Directory to start searching from. Defaults to current working directory.
+        start_path: Directory to start searching from.
 
     Returns:
         Path to pyproject.toml if found, None otherwise
     """
-    if start_path is None:
-        start_path = Path.cwd()
-
     current = start_path.resolve()
 
     # Walk up the directory tree
@@ -55,150 +111,63 @@ def _find_pyproject_toml(start_path: Path | None = None) -> Path | None:
         current = parent
 
 
-def _load_pyproject_config(start_path: Path | None = None) -> dict | None:
-    """Load tailwhip configuration from pyproject.toml [tool.tailwhip] section.
+def _extract_tool_tailwhip(pyproject_path: Path) -> dict | None:
+    """Extract [tool.tailwhip] section from pyproject.toml.
 
     Args:
-        start_path: Directory to start searching from. Defaults to current working directory.
+        pyproject_path: Path to pyproject.toml
 
     Returns:
-        Configuration dictionary from [tool.tailwhip] section, or None if not found
+        Dictionary with tailwhip config, or None if section doesn't exist
+
+    Raises:
+        Exception: If pyproject.toml has invalid TOML syntax
     """
-    pyproject_path = _find_pyproject_toml(start_path)
-    if not pyproject_path:
-        return None
-
-    try:
-        with pyproject_path.open("rb") as f:
-            pyproject_data = tomllib.load(f)
-
-        # Extract [tool.tailwhip] section if it exists
-        return pyproject_data.get("tool", {}).get("tailwhip", None)
-    except Exception:
-        # If there's any error reading the file, just skip it
-        return None
+    with pyproject_path.open("rb") as f:
+        data = tomllib.load(f)
+    return data.get("tool", {}).get("tailwhip")
 
 
-def _load_config(
-    custom_config_path: Path | None = None,
-    search_path: Path | None = None,
-) -> dict:
-    """Load configuration with priority: custom > pyproject.toml > defaults.
-
-    Args:
-        custom_config_path: Optional path to a custom TOML config file that will be
-                           merged with the default config. Only specified values will
-                           be overridden.
-        search_path: Directory to start searching for pyproject.toml. Defaults to cwd.
-
-    Returns:
-        Configuration dictionary
-    """
-    # Load default config
-    default_config_path = Path(__file__).parent / "constants.toml"
-    with default_config_path.open("rb") as f:
-        config = tomllib.load(f)
-
-    # Merge with pyproject.toml [tool.tailwhip] if found
-    pyproject_config = _load_pyproject_config(search_path)
-    if pyproject_config:
-        config = _deep_merge(config, pyproject_config)
-
-    # Merge with custom config if provided (highest priority)
-    if custom_config_path:
-        if not custom_config_path.exists():
-            msg = f"Custom config file not found: {custom_config_path}"
-            raise FileNotFoundError(msg)
-
-        with custom_config_path.open("rb") as f:
-            custom_config = tomllib.load(f)
-
-        config = _deep_merge(config, custom_config)
-
-    return config
-
-
-def reload_config(
-    custom_config_path: Path | None = None,
-    search_path: Path | None = None,
-) -> None:
-    """Reload configuration from disk, optionally with a custom config file.
-
-    This function allows reloading the configuration at runtime, useful when
-    a custom config file is specified via CLI or when pyproject.toml should be loaded.
-
-    Configuration priority: custom > pyproject.toml > defaults
-
-    Args:
-        custom_config_path: Optional path to a custom TOML config file
-        search_path: Directory to start searching for pyproject.toml. Defaults to cwd.
-    """
-    global _config, GLOBS, SKIP_EXPRESSIONS, VARIANT_SEP, GROUP_ORDER, GROUP_PATTERNS
-    global VARIANT_PREFIX_ORDER, VARIANT_PATTERNS, TAILWIND_COLORS, CLASSES_RE
+def _update_constants() -> None:
+    """Update module-level constants from dynaconf settings."""
+    global GLOBS, SKIP_EXPRESSIONS, VARIANT_SEP, GROUP_ORDER, GROUP_PATTERNS
+    global VARIANT_PREFIX_ORDER, VARIANT_PATTERNS, TAILWIND_COLORS
     global CLASS_ATTR_RE, APPLY_RE
 
-    _config = _load_config(custom_config_path, search_path)
-
-    # Reload all constants
-    GLOBS = _config["globs"]
-    SKIP_EXPRESSIONS = _config["skip_expressions"]
-    VARIANT_SEP = _config["variant_sep"]
-    GROUP_ORDER = _config["group_order"]
+    GLOBS = settings.get("globs", [])
+    SKIP_EXPRESSIONS = settings.get("skip_expressions", [])
+    VARIANT_SEP = settings.get("variant_sep", ":")
+    GROUP_ORDER = settings.get("group_order", [])
     GROUP_PATTERNS = [re.compile("^" + g) for g in GROUP_ORDER]
-    VARIANT_PREFIX_ORDER = _config["variant_prefix_order"]
+    VARIANT_PREFIX_ORDER = settings.get("variant_prefix_order", [])
     VARIANT_PATTERNS = [re.compile(v) for v in VARIANT_PREFIX_ORDER]
-    TAILWIND_COLORS = set(_config["tailwind_colors"])
+    TAILWIND_COLORS = set(settings.get("tailwind_colors", []))
 
-    # Load combined regex if available, otherwise use individual patterns
-    if "classes_re" in _config:
-        CLASSES_RE = re.compile(
-            _config["classes_re"],
-            re.IGNORECASE | re.DOTALL | re.MULTILINE,
-        )
-    # Keep the hardcoded individual patterns for backwards compatibility
     CLASS_ATTR_RE = re.compile(
-        r"""(?P<full>\bclass\s*=\s*(?P<quote>["'])(?P<val>.*?)(?P=quote))""",
+        settings.get("class_attr_re", r"""(?P<full>\bclass\s*=\s*(?P<quote>["'])(?P<val>.*?)(?P=quote))"""),
         re.IGNORECASE | re.DOTALL,
     )
+
     APPLY_RE = re.compile(
-        r"""@apply\s+(?P<classes>[^;]+);""",
+        settings.get("apply_re", r"""@apply\s+(?P<classes>[^;]+);"""),
         re.MULTILINE,
     )
 
 
-# Load default configuration
-_config = _load_config()
+# Initialize constants on module load
+_update_constants()
 
-# File glob(s) to process
-GLOBS = _config["globs"]
-
-# Skip if a template expression appears inside the class attribute
-SKIP_EXPRESSIONS = _config["skip_expressions"]
-
-# Recognize Tailwind variants
-VARIANT_SEP = _config["variant_sep"]
-
-# Group order patterns
-GROUP_ORDER = _config["group_order"]
-GROUP_PATTERNS = [re.compile("^" + g) for g in GROUP_ORDER]
-
-# Variant prefix order patterns
-VARIANT_PREFIX_ORDER = _config["variant_prefix_order"]
-VARIANT_PATTERNS = [re.compile(v) for v in VARIANT_PREFIX_ORDER]
-
-# Standard Tailwind color names
-TAILWIND_COLORS = set(_config["tailwind_colors"])
-
-# Regex patterns
-CLASS_ATTR_RE = re.compile(
-    _config["class_attr_re"],
-    re.IGNORECASE | re.DOTALL,
-)
-
-APPLY_RE = re.compile(
-    _config["apply_re"],
-    re.MULTILINE,
-)
+# Export constants (initialized by _update_constants())
+GLOBS: list[str]
+SKIP_EXPRESSIONS: list[str]
+VARIANT_SEP: str
+GROUP_ORDER: list[str]
+GROUP_PATTERNS: list[re.Pattern]
+VARIANT_PREFIX_ORDER: list[str]
+VARIANT_PATTERNS: list[re.Pattern]
+TAILWIND_COLORS: set[str]
+CLASS_ATTR_RE: re.Pattern
+APPLY_RE: re.Pattern
 
 CONSOLE_THEME = Theme(
     {

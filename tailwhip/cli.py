@@ -5,7 +5,7 @@ from __future__ import annotations
 import sys
 import time
 from importlib import metadata
-from pathlib import Path  # noqa: TC003
+from pathlib import Path
 from typing import Annotated
 
 import typer
@@ -96,17 +96,13 @@ def run(  # noqa: PLR0913
     ] = None,
 ) -> None:
     """Sort Tailwind CSS classes in HTML and CSS files."""
-    # Load configuration with priority: custom > pyproject.toml > defaults
-    # Use the first path as search location for pyproject.toml
-    search_path = paths[0].parent if paths and paths[0].is_file() else (paths[0] if paths else None)
+    # Load configuration (dynaconf handles file validation and discovery)
+    search_path = paths[0] if paths else Path.cwd()
 
     try:
         constants.reload_config(config_file, search_path)
-    except FileNotFoundError as e:
+    except (FileNotFoundError, ValueError) as e:
         typer.echo(f"Error: {e}", err=True)
-        raise typer.Exit(1) from e
-    except Exception as e:
-        typer.echo(f"Error loading config file: {e}", err=True)
         raise typer.Exit(1) from e
 
     console = Console(quiet=quiet, theme=CONSOLE_THEME)
@@ -122,8 +118,7 @@ def run(  # noqa: PLR0913
     console.print("")
 
     start_time = time.time()
-    targets = find_files()
-    found_any, skipped, changed = apply_changes(targets=targets)
+    found_any, skipped, changed = apply_changes(targets=find_files())
     duration = time.time() - start_time
 
     if not found_any:

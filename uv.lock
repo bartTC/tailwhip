@@ -125,6 +125,15 @@ toml = [
 ]
 
 [[package]]
+name = "dynaconf"
+version = "3.2.12"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/cd/bd/7a6f84b68268fe1d12e709faec7d293e0c37c9c03bacaf363de41e7e7568/dynaconf-3.2.12.tar.gz", hash = "sha256:29cea583b007d890e6031fa89c0ac489b631c73dbee83bcd5e6f97602c26354e", size = 313801, upload-time = "2025-10-10T19:54:06.164Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/26/68/51adede38ab2ee9ecfddb8b60a80a42b618a72f1018fcf60974e5d852831/dynaconf-3.2.12-py2.py3-none-any.whl", hash = "sha256:eb2a11865917dff8810c6098cd736b8f4d2f4e39ad914500e2dfbe064b82c499", size = 237788, upload-time = "2025-10-10T19:54:03.731Z" },
+]
+
+[[package]]
 name = "iniconfig"
 version = "2.3.0"
 source = { registry = "https://pypi.org/simple" }
@@ -238,6 +247,7 @@ name = "tailwhip"
 version = "0.9a5"
 source = { editable = "." }
 dependencies = [
+    { name = "dynaconf" },
     { name = "rich" },
     { name = "typer" },
     { name = "wcmatch" },
@@ -251,6 +261,7 @@ dev = [
 
 [package.metadata]
 requires-dist = [
+    { name = "dynaconf" },
     { name = "rich" },
     { name = "typer" },
     { name = "wcmatch" },

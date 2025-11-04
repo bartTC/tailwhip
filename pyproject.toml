@@ -43,6 +43,9 @@ dev = [
 [project.scripts]
 tailwhip = "tailwhip:main"
 
+[tool.setuptools.package-data]
+tailwhip = ["constants.toml"]
+
 [tool.uv]
 package = true
 

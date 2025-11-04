@@ -96,19 +96,12 @@ def _find_pyproject_toml(start_path: Path) -> Path | None:
     Returns:
         Path to pyproject.toml if found, None otherwise
     """
-    current = start_path.resolve()
-
-    # Walk up the directory tree
-    while True:
-        pyproject_path = current / "pyproject.toml"
-        if pyproject_path.exists():
-            return pyproject_path
-
-        # Stop at filesystem root
-        parent = current.parent
-        if parent == current:
-            return None
-        current = parent
+    # Walk up using Path.parents (includes start_path itself)
+    for directory in [start_path, *start_path.resolve().parents]:
+        candidate = directory / "pyproject.toml"
+        if candidate.exists():
+            return candidate
+    return None
 
 
 def _extract_tool_tailwhip(pyproject_path: Path) -> dict | None:

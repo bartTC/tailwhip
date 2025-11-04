@@ -12,7 +12,7 @@ from rich.padding import Padding
 from rich.syntax import Syntax
 from wcmatch import glob
 
-from tailwhip.constants import GLOBS, VERBOSITY_ALL, VERBOSITY_LOUD, VERBOSITY_NONE
+from tailwhip.configuration import GLOBS, VERBOSITY_ALL, VERBOSITY_LOUD, VERBOSITY_NONE
 from tailwhip.context import get_config
 from tailwhip.process import process_text
 

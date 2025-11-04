@@ -7,7 +7,7 @@ Test Coverage:
 --------------
 
 No Settings (Defaults):
-    - test_default_configuration: Verifies defaults load correctly from constants.toml
+    - test_default_configuration: Verifies defaults load correctly from configuration.toml
 
 Custom Config Tests:
     - test_custom_config_valid: Valid custom config overrides defaults
@@ -53,7 +53,7 @@ from typing import TYPE_CHECKING
 
 import pytest
 
-from tailwhip import constants
+from tailwhip import configuration
 
 if TYPE_CHECKING:
     from _pytest.monkeypatch import MonkeyPatch
@@ -70,19 +70,19 @@ def reset_constants() -> None:
     """Reset constants to defaults after each test."""
     yield
     # Reload with no custom config to reset to defaults
-    constants.reload_config()
+    configuration.reload_config()
 
 
 def test_default_configuration(temp_config_dir: Path) -> None:
     """Test that default configuration loads correctly."""
-    constants.reload_config(search_path=temp_config_dir)
+    configuration.reload_config(search_path=temp_config_dir)
 
-    # Verify defaults from constants.toml
-    assert constants.GLOBS == ["**/*.html", "**/*.css"]
-    assert constants.SKIP_EXPRESSIONS == ["{{", "{%", "<%"]
-    assert constants.VARIANT_SEP == ":"
-    assert len(constants.GROUP_ORDER) > 0
-    assert len(constants.TAILWIND_COLORS) > 0
+    # Verify defaults from configuration.toml
+    assert configuration.GLOBS == ["**/*.html", "**/*.css"]
+    assert configuration.SKIP_EXPRESSIONS == ["{{", "{%", "<%"]
+    assert configuration.VARIANT_SEP == ":"
+    assert len(configuration.GROUP_ORDER) > 0
+    assert len(configuration.TAILWIND_COLORS) > 0
 
 
 def test_custom_config_valid(temp_config_dir: Path) -> None:
@@ -96,13 +96,13 @@ skip_expressions = ["{{", "{%", "<%", "<?"]
 # Add custom colors to existing ones
 """)
 
-    constants.reload_config(custom_config, temp_config_dir)
+    configuration.reload_config(custom_config, temp_config_dir)
 
     # Custom config should override defaults
-    assert constants.GLOBS == ["**/*.jsx", "**/*.tsx"]
-    assert constants.SKIP_EXPRESSIONS == ["{{", "{%", "<%", "<?"]
+    assert configuration.GLOBS == ["**/*.jsx", "**/*.tsx"]
+    assert configuration.SKIP_EXPRESSIONS == ["{{", "{%", "<%", "<?"]
     # Other values should remain default
-    assert constants.VARIANT_SEP == ":"
+    assert configuration.VARIANT_SEP == ":"
 
 
 def test_custom_config_partial_override(temp_config_dir: Path) -> None:
@@ -113,12 +113,12 @@ def test_custom_config_partial_override(temp_config_dir: Path) -> None:
 globs = ["**/*.vue"]
 """)
 
-    constants.reload_config(custom_config, temp_config_dir)
+    configuration.reload_config(custom_config, temp_config_dir)
 
-    assert constants.GLOBS == ["**/*.vue"]
+    assert configuration.GLOBS == ["**/*.vue"]
     # Everything else should be default
-    assert constants.SKIP_EXPRESSIONS == ["{{", "{%", "<%"]
-    assert constants.VARIANT_SEP == ":"
+    assert configuration.SKIP_EXPRESSIONS == ["{{", "{%", "<%"]
+    assert configuration.VARIANT_SEP == ":"
 
 
 def test_custom_config_missing_file(temp_config_dir: Path) -> None:
@@ -126,7 +126,7 @@ def test_custom_config_missing_file(temp_config_dir: Path) -> None:
     nonexistent = temp_config_dir / "nonexistent.toml"
 
     with pytest.raises(FileNotFoundError, match="Custom config file not found"):
-        constants.reload_config(nonexistent, temp_config_dir)
+        configuration.reload_config(nonexistent, temp_config_dir)
 
 
 def test_custom_config_invalid_toml(temp_config_dir: Path) -> None:
@@ -138,7 +138,7 @@ invalid syntax here
 """)
 
     with pytest.raises(Exception):  # Dynaconf/tomllib will raise
-        constants.reload_config(custom_config, temp_config_dir)
+        configuration.reload_config(custom_config, temp_config_dir)
 
 
 def test_pyproject_toml_valid(temp_config_dir: Path) -> None:
@@ -153,10 +153,10 @@ globs = ["**/*.html", "**/*.jinja2"]
 skip_expressions = ["{{", "{%", "{#"]
 """)
 
-    constants.reload_config(search_path=temp_config_dir)
+    configuration.reload_config(search_path=temp_config_dir)
 
-    assert constants.GLOBS == ["**/*.html", "**/*.jinja2"]
-    assert constants.SKIP_EXPRESSIONS == ["{{", "{%", "{#"]
+    assert configuration.GLOBS == ["**/*.html", "**/*.jinja2"]
+    assert configuration.SKIP_EXPRESSIONS == ["{{", "{%", "{#"]
 
 
 def test_pyproject_toml_invalid_syntax(temp_config_dir: Path) -> None:
@@ -169,7 +169,7 @@ name = "test-project"  # Missing closing bracket
 
     # Should handle gracefully or raise appropriate error
     with pytest.raises(Exception):
-        constants.reload_config(search_path=temp_config_dir)
+        configuration.reload_config(search_path=temp_config_dir)
 
 
 def test_pyproject_toml_no_tailwhip_section(temp_config_dir: Path) -> None:
@@ -184,11 +184,11 @@ version = "1.0.0"
 setting = "value"
 """)
 
-    constants.reload_config(search_path=temp_config_dir)
+    configuration.reload_config(search_path=temp_config_dir)
 
     # Should use defaults since no [tool.tailwhip] section
-    assert constants.GLOBS == ["**/*.html", "**/*.css"]
-    assert constants.SKIP_EXPRESSIONS == ["{{", "{%", "<%"]
+    assert configuration.GLOBS == ["**/*.html", "**/*.css"]
+    assert configuration.SKIP_EXPRESSIONS == ["{{", "{%", "<%"]
 
 
 def test_custom_and_pyproject_both_valid(temp_config_dir: Path) -> None:
@@ -209,13 +209,13 @@ globs = ["**/*.vue"]
 skip_expressions = ["{{", "{%", "<%", "<?"]
 """)
 
-    constants.reload_config(custom_config, temp_config_dir)
+    configuration.reload_config(custom_config, temp_config_dir)
 
     # Custom config should win
-    assert constants.GLOBS == ["**/*.vue"]
-    assert constants.SKIP_EXPRESSIONS == ["{{", "{%", "<%", "<?"]
+    assert configuration.GLOBS == ["**/*.vue"]
+    assert configuration.SKIP_EXPRESSIONS == ["{{", "{%", "<%", "<?"]
     # Values not in custom should come from pyproject/defaults
-    assert constants.VARIANT_SEP == ":"
+    assert configuration.VARIANT_SEP == ":"
 
 
 def test_custom_invalid_pyproject_valid(temp_config_dir: Path) -> None:
@@ -232,7 +232,7 @@ globs = ["**/*.html"  # Invalid syntax
 """)
 
     with pytest.raises(Exception):
-        constants.reload_config(custom_config, temp_config_dir)
+        configuration.reload_config(custom_config, temp_config_dir)
 
 
 def test_custom_valid_pyproject_invalid(temp_config_dir: Path) -> None:
@@ -250,7 +250,7 @@ globs = ["**/*.vue"]
 
     # Custom config should load, but pyproject error should propagate
     with pytest.raises(Exception):
-        constants.reload_config(custom_config, temp_config_dir)
+        configuration.reload_config(custom_config, temp_config_dir)
 
 
 def test_configuration_priority_chain(temp_config_dir: Path) -> None:
@@ -269,15 +269,15 @@ skip_expressions = ["{{", "{%", "{#"]
 globs = ["**/*.vue"]
 """)
 
-    constants.reload_config(custom_config, temp_config_dir)
+    configuration.reload_config(custom_config, temp_config_dir)
 
     # Priority chain should work:
     # - globs: from custom (highest priority)
     # - skip_expressions: from pyproject (middle priority)
     # - variant_sep: from defaults (lowest priority)
-    assert constants.GLOBS == ["**/*.vue"]
-    assert constants.SKIP_EXPRESSIONS == ["{{", "{%", "{#"]
-    assert constants.VARIANT_SEP == ":"
+    assert configuration.GLOBS == ["**/*.vue"]
+    assert configuration.SKIP_EXPRESSIONS == ["{{", "{%", "{#"]
+    assert configuration.VARIANT_SEP == ":"
 
 
 def test_custom_colors_configuration(temp_config_dir: Path) -> None:
@@ -290,13 +290,13 @@ tailwind_colors = [
 ]
 """)
 
-    constants.reload_config(custom_config, temp_config_dir)
+    configuration.reload_config(custom_config, temp_config_dir)
 
-    assert "brand" in constants.TAILWIND_COLORS
-    assert "company" in constants.TAILWIND_COLORS
-    assert "accent" in constants.TAILWIND_COLORS
+    assert "brand" in configuration.TAILWIND_COLORS
+    assert "company" in configuration.TAILWIND_COLORS
+    assert "accent" in configuration.TAILWIND_COLORS
     # Note: This replaces the list, not extends it
-    assert len(constants.TAILWIND_COLORS) == 7
+    assert len(configuration.TAILWIND_COLORS) == 7
 
 
 def test_regex_patterns_compilation(temp_config_dir: Path) -> None:
@@ -307,15 +307,15 @@ class_attr_re = '''(?P<full>\\bclass\\s*=\\s*(?P<quote>["'])(?P<val>.*?)(?P=quot
 apply_re = '''@apply\\s+(?P<classes>[^;]+);'''
 """)
 
-    constants.reload_config(custom_config, temp_config_dir)
+    configuration.reload_config(custom_config, temp_config_dir)
 
     # Verify patterns are compiled and work
-    assert constants.CLASS_ATTR_RE.pattern
-    assert constants.APPLY_RE.pattern
+    assert configuration.CLASS_ATTR_RE.pattern
+    assert configuration.APPLY_RE.pattern
 
     # Test they actually match
-    assert constants.CLASS_ATTR_RE.search('class="flex p-4"')
-    assert constants.APPLY_RE.search("@apply flex p-4;")
+    assert configuration.CLASS_ATTR_RE.search('class="flex p-4"')
+    assert configuration.APPLY_RE.search("@apply flex p-4;")
 
 
 def test_group_and_variant_patterns(temp_config_dir: Path) -> None:
@@ -326,15 +326,15 @@ group_order = ["(container)", "(flex|grid)"]
 variant_prefix_order = ["sm:", "md:", "lg:"]
 """)
 
-    constants.reload_config(custom_config, temp_config_dir)
+    configuration.reload_config(custom_config, temp_config_dir)
 
-    assert len(constants.GROUP_PATTERNS) == 2
-    assert len(constants.VARIANT_PATTERNS) == 3
+    assert len(configuration.GROUP_PATTERNS) == 2
+    assert len(configuration.VARIANT_PATTERNS) == 3
 
     # Verify patterns work
-    assert constants.GROUP_PATTERNS[0].match("container")
-    assert constants.GROUP_PATTERNS[1].match("flex")
-    assert constants.VARIANT_PATTERNS[0].match("sm:")
+    assert configuration.GROUP_PATTERNS[0].match("container")
+    assert configuration.GROUP_PATTERNS[1].match("flex")
+    assert configuration.VARIANT_PATTERNS[0].match("sm:")
 
 
 def test_environment_variable_override(
@@ -343,10 +343,10 @@ def test_environment_variable_override(
     """Test that environment variables can override config (TAILWHIP_ prefix)."""
     monkeypatch.setenv("TAILWHIP_VARIANT_SEP", "|")
 
-    constants.reload_config(search_path=temp_config_dir)
+    configuration.reload_config(search_path=temp_config_dir)
 
     # Environment variable should override default
-    assert constants.VARIANT_SEP == "|"
+    assert configuration.VARIANT_SEP == "|"
 
 
 def test_empty_custom_config(temp_config_dir: Path) -> None:
@@ -354,11 +354,11 @@ def test_empty_custom_config(temp_config_dir: Path) -> None:
     custom_config = temp_config_dir / "empty.toml"
     custom_config.write_text("# Empty config file\n")
 
-    constants.reload_config(custom_config, temp_config_dir)
+    configuration.reload_config(custom_config, temp_config_dir)
 
     # Should use all defaults
-    assert constants.GLOBS == ["**/*.html", "**/*.css"]
-    assert constants.SKIP_EXPRESSIONS == ["{{", "{%", "<%"]
+    assert configuration.GLOBS == ["**/*.html", "**/*.css"]
+    assert configuration.SKIP_EXPRESSIONS == ["{{", "{%", "<%"]
 
 
 def test_search_path_parent_directory(tmp_path: Path) -> None:
@@ -377,9 +377,9 @@ globs = ["**/*.component.html"]
 """)
 
     # Search from subdirectory - should find parent pyproject.toml
-    constants.reload_config(search_path=subdir)
+    configuration.reload_config(search_path=subdir)
 
-    assert constants.GLOBS == ["**/*.component.html"]
+    assert configuration.GLOBS == ["**/*.component.html"]
 
 
 def test_reload_resets_previous_config(temp_config_dir: Path) -> None:
@@ -391,8 +391,8 @@ globs = ["**/*.vue"]
 skip_expressions = ["{{", "{%", "<%", "<?", "{#"]
 """)
 
-    constants.reload_config(custom1, temp_config_dir)
-    assert len(constants.SKIP_EXPRESSIONS) == 5
+    configuration.reload_config(custom1, temp_config_dir)
+    assert len(configuration.SKIP_EXPRESSIONS) == 5
 
     # Now reload with different config
     custom2 = temp_config_dir / "custom2.toml"
@@ -401,9 +401,9 @@ globs = ["**/*.jsx"]
 skip_expressions = ["{{"]
 """)
 
-    constants.reload_config(custom2, temp_config_dir)
+    configuration.reload_config(custom2, temp_config_dir)
 
     # Should completely replace previous config
-    assert constants.GLOBS == ["**/*.jsx"]
-    assert constants.SKIP_EXPRESSIONS == ["{{"]
-    assert len(constants.SKIP_EXPRESSIONS) == 1  # Not merged, replaced
+    assert configuration.GLOBS == ["**/*.jsx"]
+    assert configuration.SKIP_EXPRESSIONS == ["{{"]
+    assert len(configuration.SKIP_EXPRESSIONS) == 1  # Not merged, replaced

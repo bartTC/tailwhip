@@ -1,4 +1,4 @@
-"""Constants used by tailwhip."""
+"""Configuration management for tailwhip."""
 
 from __future__ import annotations
 
@@ -9,12 +9,12 @@ from pathlib import Path
 from dynaconf import Dynaconf
 from rich.theme import Theme
 
-# Path to default config
-_default_config_path = Path(__file__).parent / "constants.toml"
+# Path to default configuration file
+_default_config_path = Path(__file__).parent / "configuration.toml"
 
-# Initialize dynaconf
+# Initialize dynaconf configuration
 # Configuration priority: custom > pyproject.toml > defaults
-settings = Dynaconf(
+configuration = Dynaconf(
     settings_files=[str(_default_config_path)],
     includes=["pyproject.toml"],  # Auto-discover pyproject.toml
     merge_enabled=False,  # Replace values instead of merging lists
@@ -37,7 +37,7 @@ def reload_config(
         custom_config_path: Optional path to a custom TOML config file
         search_path: Directory to start searching for pyproject.toml
     """
-    global settings
+    global configuration
 
     if custom_config_path and not custom_config_path.exists():
         msg = f"Custom config file not found: {custom_config_path}"
@@ -66,7 +66,7 @@ def reload_config(
 
     # Create new Dynaconf instance (configure() doesn't fully reload)
     # Note: merge_enabled=False so lists are replaced, not merged
-    settings = Dynaconf(
+    configuration = Dynaconf(
         settings_files=settings_files,
         merge_enabled=False,  # Replace values instead of merging lists
         envvar_prefix="TAILWHIP",
@@ -81,7 +81,7 @@ def reload_config(
         for key, value in pyproject_config.items():
             # Only set if not defined in custom config
             if key not in custom_keys:
-                settings.set(key, value)
+                configuration.set(key, value)
 
     # Update module-level constants from settings
     _update_constants()
@@ -129,27 +129,27 @@ def _extract_tool_tailwhip(pyproject_path: Path) -> dict | None:
 
 
 def _update_constants() -> None:
-    """Update module-level constants from dynaconf settings."""
+    """Update module-level constants from dynaconf configuration."""
     global GLOBS, SKIP_EXPRESSIONS, VARIANT_SEP, GROUP_ORDER, GROUP_PATTERNS
     global VARIANT_PREFIX_ORDER, VARIANT_PATTERNS, TAILWIND_COLORS
     global CLASS_ATTR_RE, APPLY_RE
 
-    GLOBS = settings.get("globs", [])
-    SKIP_EXPRESSIONS = settings.get("skip_expressions", [])
-    VARIANT_SEP = settings.get("variant_sep", ":")
-    GROUP_ORDER = settings.get("group_order", [])
+    GLOBS = configuration.get("globs", [])
+    SKIP_EXPRESSIONS = configuration.get("skip_expressions", [])
+    VARIANT_SEP = configuration.get("variant_sep", ":")
+    GROUP_ORDER = configuration.get("group_order", [])
     GROUP_PATTERNS = [re.compile("^" + g) for g in GROUP_ORDER]
-    VARIANT_PREFIX_ORDER = settings.get("variant_prefix_order", [])
+    VARIANT_PREFIX_ORDER = configuration.get("variant_prefix_order", [])
     VARIANT_PATTERNS = [re.compile(v) for v in VARIANT_PREFIX_ORDER]
-    TAILWIND_COLORS = set(settings.get("tailwind_colors", []))
+    TAILWIND_COLORS = set(configuration.get("tailwind_colors", []))
 
     CLASS_ATTR_RE = re.compile(
-        settings.get("class_attr_re", r"""(?P<full>\bclass\s*=\s*(?P<quote>["'])(?P<val>.*?)(?P=quote))"""),
+        configuration.get("class_attr_re", r"""(?P<full>\bclass\s*=\s*(?P<quote>["'])(?P<val>.*?)(?P=quote))"""),
         re.IGNORECASE | re.DOTALL,
     )
 
     APPLY_RE = re.compile(
-        settings.get("apply_re", r"""@apply\s+(?P<classes>[^;]+);"""),
+        configuration.get("apply_re", r"""@apply\s+(?P<classes>[^;]+);"""),
         re.MULTILINE,
     )
 

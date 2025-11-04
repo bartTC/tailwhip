@@ -11,8 +11,8 @@ from typing import Annotated
 import typer
 from rich.console import Console
 
-from tailwhip import constants
-from tailwhip.constants import CONSOLE_THEME, GLOBS, VERBOSITY_LOUD
+from tailwhip import configuration
+from tailwhip.configuration import CONSOLE_THEME, GLOBS, VERBOSITY_LOUD
 from tailwhip.context import set_config
 from tailwhip.datatypes import Config
 from tailwhip.files import apply_changes, find_files
@@ -27,8 +27,9 @@ def version_callback(value: bool) -> None:
 
 
 app = typer.Typer(
-    help="Sort Tailwind CSS classes in HTML and CSS files",
+    help="Sort Tailwind CSS classes in HTML and CSS files.",
     add_completion=False,
+    rich_markup_mode="rich",
 )
 
 
@@ -37,22 +38,24 @@ def main() -> None:
     app()
 
 
-@app.command()
+@app.command(context_settings={"help_option_names": ["-h", "--help"]})
 def run(  # noqa: PLR0913
     paths: Annotated[
         list[Path],
         typer.Argument(
             help=(
-                f"File or directory paths to process. Plain directories "
-                f"(e.g., 'templates/') use default patterns ({', '.join(GLOBS)}). "
-                f"Glob patterns (e.g., 'templates/**/*.postcss') are matched as-is."
-            )
+                f"Files or directories to process. "
+                f"Directories use default patterns ({', '.join(GLOBS)}), "
+                f"glob patterns (e.g., 'src/**/*.jsx') match as specified."
+            ),
+            metavar="PATH",
         ),
     ],
     version: Annotated[  # noqa: ARG001
         bool,
         typer.Option(
             "--version",
+            "-V",
             callback=version_callback,
             is_eager=True,
             help="Show version and exit.",
@@ -62,7 +65,8 @@ def run(  # noqa: PLR0913
         bool,
         typer.Option(
             "--write",
-            help="Apply sorting changes to files. Without this flag, runs in check-only mode to preview changes.",
+            "-w",
+            help="Write changes to files (default: dry-run mode).",
         ),
     ] = False,
     quiet: Annotated[
@@ -70,7 +74,7 @@ def run(  # noqa: PLR0913
         typer.Option(
             "--quiet",
             "-q",
-            help="Minimal output mode. Only displays errors and warnings.",
+            help="Suppress output except errors and warnings.",
         ),
     ] = False,
     verbosity: Annotated[
@@ -79,28 +83,29 @@ def run(  # noqa: PLR0913
             "--verbose",
             "-v",
             count=True,
-            help="Increase output detail level. Use -v for changes, -vv for file processing, -vvv for debug info.",
+            help="Increase output verbosity (-v: changes, -vv: diff, -vvv: debug).",
         ),
     ] = 0,
-    config_file: Annotated[
+    configuration_file: Annotated[
         Path | None,
         typer.Option(
             "--config",
             "-c",
-            help=(
-                "Path to a custom TOML config file. This file will be merged with the default "
-                "constants.toml. You only need to specify the values you want to override. "
-                "Useful for customizing globs, group_order, variant_prefix_order, etc."
-            ),
+            help="Load custom configuration file (overrides pyproject.toml settings).",
+            metavar="FILE",
         ),
     ] = None,
 ) -> None:
-    """Sort Tailwind CSS classes in HTML and CSS files."""
+    """Sort Tailwind CSS classes in HTML and CSS files.
+
+    Automatically discovers and sorts Tailwind classes according to a consistent
+    ordering. Supports HTML, CSS, and template files with Tailwind @apply directives.
+    """
     # Load configuration (dynaconf handles file validation and discovery)
     search_path = paths[0] if paths else Path.cwd()
 
     try:
-        constants.reload_config(config_file, search_path)
+        configuration.reload_config(configuration_file, search_path)
     except (FileNotFoundError, ValueError) as e:
         typer.echo(f"Error: {e}", err=True)
         raise typer.Exit(1) from e

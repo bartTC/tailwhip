@@ -1,0 +1,66 @@
+# Example custom configuration file for tailwhip
+#
+# This file demonstrates how to customize tailwhip's behavior by overriding
+# default values in constants.toml. You only need to specify the values you
+# want to change - all other values will use the defaults.
+#
+# Configuration Priority (highest to lowest):
+#   1. Custom config file (--config flag)
+#   2. pyproject.toml [tool.tailwhip] section
+#   3. Built-in defaults (constants.toml)
+#
+# Usage Option 1: Custom config file
+#   tailwhip --config example_custom_config.toml path/to/files/
+#
+# Usage Option 2: Add to your pyproject.toml (automatic discovery)
+#   [tool.tailwhip]
+#   globs = ["**/*.jsx", "**/*.tsx"]
+#   skip_expressions = ["{{", "{%", "<?"]
+
+# Example: Process different file types
+# globs = [
+#     "**/*.jsx",
+#     "**/*.tsx",
+#     "**/*.vue",
+# ]
+
+# Example: Add custom skip expressions for your template engine
+# skip_expressions = [
+#     "{{",   # Default: Handlebars, Django
+#     "{%",   # Default: Django, Jinja2
+#     "<%",   # Default: ERB
+#     "<?",   # Custom: PHP
+# ]
+
+# Example: Add custom Tailwind colors from your tailwind.config.js
+# tailwind_colors = [
+#     # Include all standard colors you want to support
+#     "transparent",
+#     "current",
+#     "black",
+#     "white",
+#     "gray",
+#     "red",
+#     "blue",
+#     "green",
+#     # Add your custom colors
+#     "brand",
+#     "company",
+#     "accent",
+# ]
+
+# Example: Customize the utility class sorting order
+# Add new patterns to group_order to prioritize your custom utilities
+# group_order = [
+#     # ... (copy from constants.toml and modify)
+#     # Add your custom patterns:
+#     '(custom-utility)-',
+# ]
+
+# Example: Customize variant sorting order
+# Add new patterns to variant_prefix_order for custom variants
+# variant_prefix_order = [
+#     # ... (copy from constants.toml and modify)
+#     # Add your custom variants:
+#     '(custom-variant):',
+# ]

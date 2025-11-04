@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from tailwhip import constants
+from tailwhip import configuration
 
 
 def variant_rank(variant: str) -> int:
@@ -17,10 +17,10 @@ def variant_rank(variant: str) -> int:
 
     """
     variant_with_colon = f"{variant}:"
-    for i, pat in enumerate(constants.VARIANT_PATTERNS):
+    for i, pat in enumerate(configuration.VARIANT_PATTERNS):
         if pat.match(variant_with_colon):
             return i
-    return len(constants.VARIANT_PATTERNS) + 1  # unknowns to the end
+    return len(configuration.VARIANT_PATTERNS) + 1  # unknowns to the end
 
 
 def variant_base(classname: str) -> tuple[list[str], str]:
@@ -53,7 +53,7 @@ def variant_base(classname: str) -> tuple[list[str], str]:
         (['dark', 'lg', 'hover'], 'bg-gray-900')
 
     """
-    parts = classname.split(constants.VARIANT_SEP)
+    parts = classname.split(configuration.VARIANT_SEP)
     base = parts[-1]
     unique_variants = list(dict.fromkeys(parts[:-1]))  # dedupe while preserving order
     variants = sorted(unique_variants, key=lambda v: (variant_rank(v), v))
@@ -138,10 +138,10 @@ def utility_rank(utility: str) -> int:
     # Strip leading negative sign for matching, so -mt-4 matches the same pattern as mt-4
     utility_to_match = utility.lstrip("-")
 
-    for i, pat in enumerate(constants.GROUP_PATTERNS):
+    for i, pat in enumerate(configuration.GROUP_PATTERNS):
         if pat.match(utility_to_match):
             return i
-    return -1  # len(constants.GROUP_PATTERNS) + 1  # Unknown classes to the front
+    return -1  # len(configuration.GROUP_PATTERNS) + 1  # Unknown classes to the front
 
 
 def sort_key(
@@ -219,8 +219,8 @@ def sort_classes(class_list: list[str]) -> list[str]:
         ['flex', 'sm:flex', 'text-red-500', 'focus:hover:text-blue-500']
 
     """
-    # Use colors from constants (includes custom colors if configured)
-    all_colors = constants.TAILWIND_COLORS
+    # Use colors from configuration (includes custom colors if configured)
+    all_colors = configuration.TAILWIND_COLORS
 
     deduped = list(dict.fromkeys(class_list))
     return sorted(deduped, key=lambda cls: sort_key(cls, all_colors))

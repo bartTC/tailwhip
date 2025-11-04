@@ -308,10 +308,10 @@ def test_sorting(classes: list[str], iteration: int) -> None:  # noqa: ARG001
 @pytest.mark.parametrize("iteration", range(10))
 def test_sorting_custom_colors(iteration: int, monkeypatch: pytest.MonkeyPatch) -> None:  # noqa: ARG001
     """Custom colors are sorted along with other colors."""
-    # Mock constants.TAILWIND_COLORS to include custom colors
-    from tailwhip import constants
-    custom_colors = constants.TAILWIND_COLORS | {"primary", "secondary-500", "border-almond-500"}
-    monkeypatch.setattr(constants, "TAILWIND_COLORS", custom_colors)
+    # Mock configuration.TAILWIND_COLORS to include custom colors
+    from tailwhip import configuration
+    custom_colors = configuration.TAILWIND_COLORS | {"primary", "secondary-500", "border-almond-500"}
+    monkeypatch.setattr(configuration, "TAILWIND_COLORS", custom_colors)
 
     classes = [
         "border-1",  # Non colors

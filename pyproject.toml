@@ -45,7 +45,7 @@ dev = [
 tailwhip = "tailwhip:main"
 
 [tool.setuptools.package-data]
-tailwhip = ["constants.toml"]
+tailwhip = ["configuration.toml"]
 
 [tool.uv]
 package = true

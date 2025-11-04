@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from tailwhip.constants import (
+from tailwhip.configuration import (
     APPLY_RE,
     CLASS_ATTR_RE,
     SKIP_EXPRESSIONS,

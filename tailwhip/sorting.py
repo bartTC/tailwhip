@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 from tailwhip import constants
-from tailwhip.context import get_config
 
 
 def variant_rank(variant: str) -> int:
@@ -220,11 +219,8 @@ def sort_classes(class_list: list[str]) -> list[str]:
         ['flex', 'sm:flex', 'text-red-500', 'focus:hover:text-blue-500']
 
     """
-    # Build a set of all colors, tailwind and custom colors
-    config = get_config()
+    # Use colors from constants (includes custom colors if configured)
     all_colors = constants.TAILWIND_COLORS
-    if config.custom_colors:
-        all_colors = all_colors | config.custom_colors
 
     deduped = list(dict.fromkeys(class_list))
     return sorted(deduped, key=lambda cls: sort_key(cls, all_colors))

@@ -7,6 +7,7 @@ from typing import TYPE_CHECKING
 from tailwhip.constants import (
     APPLY_RE,
     CLASS_ATTR_RE,
+    SKIP_EXPRESSIONS,
 )
 from tailwhip.context import get_config
 from tailwhip.sorting import sort_classes
@@ -81,7 +82,7 @@ def process_class_attr(match: re.Match[str]) -> str:
     val = match.group("val")
 
     # Skip if a template expression appears inside the class attribute
-    if any(skip_expr in val for skip_expr in config.skip_expressions):
+    if any(skip_expr in val for skip_expr in SKIP_EXPRESSIONS):
         return full
 
     classes = split_classes(val)
@@ -126,7 +127,7 @@ def process_apply_directive(match: re.Match[str]) -> str:
     classes_str = match.group("classes").strip()
 
     # Skip if a template expression appears inside the class attribute
-    if any(skip_expr in classes_str for skip_expr in config.skip_expressions):
+    if any(skip_expr in classes_str for skip_expr in SKIP_EXPRESSIONS):
         return match.group(0)
 
     classes = split_classes(classes_str)

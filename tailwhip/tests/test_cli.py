@@ -27,7 +27,6 @@ runner = CliRunner()
         "--quiet",
         "--version",
         "--help",
-        "--custom-colors='primary,secondary'",
     ],
 )
 def test_cli_with_path(testdata_dir: Path, arguments: str) -> None:

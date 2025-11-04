@@ -11,7 +11,8 @@ from typing import Annotated
 import typer
 from rich.console import Console
 
-from tailwhip.constants import CONSOLE_THEME, GLOBS, SKIP_EXPRESSIONS, VERBOSITY_LOUD
+from tailwhip import constants
+from tailwhip.constants import CONSOLE_THEME, GLOBS, VERBOSITY_LOUD
 from tailwhip.context import set_config
 from tailwhip.datatypes import Config
 from tailwhip.files import apply_changes, find_files
@@ -64,13 +65,6 @@ def run(  # noqa: PLR0913
             help="Apply sorting changes to files. Without this flag, runs in check-only mode to preview changes.",
         ),
     ] = False,
-    skip_expressions: Annotated[
-        str,
-        typer.Option(
-            "--skip-expressions",
-            help="Template syntax markers that indicate code blocks to skip sorting. Comma-separated list (e.g., '{{,{%,<%'). Prevents sorting dynamic template expressions.",
-        ),
-    ] = ",".join(SKIP_EXPRESSIONS),
     quiet: Annotated[
         bool,
         typer.Option(
@@ -88,37 +82,40 @@ def run(  # noqa: PLR0913
             help="Increase output detail level. Use -v for changes, -vv for file processing, -vvv for debug info.",
         ),
     ] = 0,
-    custom_colors: Annotated[
-        str,
+    config_file: Annotated[
+        Path | None,
         typer.Option(
-            "--custom-colors",
+            "--config",
+            "-c",
             help=(
-                "Comma-separated list of custom color names from your Tailwind config "
-                "(e.g., 'brand,company,accent'). These colors will be recognized and sorted "
-                "alongside standard Tailwind colors. WARNING: Classes using these custom colors "
-                "will sort differently if you run tailwhip again without providing the same "
-                "--custom-colors values. Omitting previously-used custom colors will cause those "
-                "utilities to be treated as non-color classes and sorted into different positions."
+                "Path to a custom TOML config file. This file will be merged with the default "
+                "constants.toml. You only need to specify the values you want to override. "
+                "Useful for customizing globs, group_order, variant_prefix_order, etc."
             ),
         ),
-    ] = "",
+    ] = None,
 ) -> None:
     """Sort Tailwind CSS classes in HTML and CSS files."""
+    # Load configuration with priority: custom > pyproject.toml > defaults
+    # Use the first path as search location for pyproject.toml
+    search_path = paths[0].parent if paths and paths[0].is_file() else (paths[0] if paths else None)
+
+    try:
+        constants.reload_config(config_file, search_path)
+    except FileNotFoundError as e:
+        typer.echo(f"Error: {e}", err=True)
+        raise typer.Exit(1) from e
+    except Exception as e:
+        typer.echo(f"Error loading config file: {e}", err=True)
+        raise typer.Exit(1) from e
+
     console = Console(quiet=quiet, theme=CONSOLE_THEME)
-    skip_expressions = [
-        expr.strip() for expr in skip_expressions.split(",") if expr.strip()
-    ]
-    custom_colors_list = {
-        color.strip() for color in custom_colors.split(",") if color.strip()
-    }
 
     config = Config(
         console=console,
         paths=paths,
         write=write_mode,
-        skip_expressions=skip_expressions,
         verbosity=verbosity + 1,
-        custom_colors=custom_colors_list,
     )
     set_config(config)
 

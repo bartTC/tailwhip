@@ -18,6 +18,4 @@ class Config:
     console: Console
     paths: list[Path]
     write: bool
-    skip_expressions: list[str]
     verbosity: int
-    custom_colors: set[str]

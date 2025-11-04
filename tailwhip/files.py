@@ -180,7 +180,7 @@ def apply_changes(*, targets: Iterable[Path]) -> tuple[bool, int, int]:
     with ThreadPoolExecutor() as executor:
         futures = [executor.submit(_process_file, f) for f in targets]
 
-        for future in as_completed(futures):
+        for future in as_completed(futures, timeout=60):
             found_any = True
             result = future.result()
 

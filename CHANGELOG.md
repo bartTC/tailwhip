@@ -14,6 +14,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Files are now processed as they are discovered by the generator
   - Significantly reduces startup delay for large codebases
 
+- **Reliability**: Added 60-second timeout to file processing
+  - Prevents indefinite hangs when processing files
+  - `as_completed()` now uses timeout parameter in `apply_changes()`
+
 ## [0.9.3] - 2025-01-04
 
 ### Changed

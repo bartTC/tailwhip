@@ -54,14 +54,14 @@ def update_configuration(data: dict | Path) -> None:
     """Update configuration with the given data."""
     if isinstance(data, dict):
         config.update(data, merge=False)
-        _recompile_constants()
+        _recompile_patterns()
         return
 
     if isinstance(data, Path):
         with data.open("rb") as f:
             config_data = tomllib.load(f)
         config.update(config_data, merge=False)
-        _recompile_constants()
+        _recompile_patterns()
         return
 
     # pragma: no cover
@@ -69,7 +69,7 @@ def update_configuration(data: dict | Path) -> None:
     raise TypeError(msg)  # pragma: no cover
 
 
-def _recompile_constants() -> None:
+def _recompile_patterns() -> None:
     """Re-compile regular expressions pattern objects."""
     config.tailwind_colors = set(config.tailwind_colors)
     config.custom_colors = set(config.custom_colors)
@@ -132,4 +132,4 @@ config = TailwhipConfig(
 )
 
 # Initialize constants on module load
-_recompile_constants()
+_recompile_patterns()

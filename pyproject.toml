@@ -71,3 +71,12 @@ lint.ignore = [
 
 [tool.pytest.ini_options]
 python_files = ["*.py"]
+
+[tool.coverage]
+run.omit = [
+    "tailwhip/tests/*",
+]
+report.exclude_lines = [
+    "pragma: no cover",
+    "if TYPE_CHECKING:",
+]

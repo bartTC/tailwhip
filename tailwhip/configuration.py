@@ -54,8 +54,9 @@ def update_configuration(data: dict | Path) -> None:
         _recompile_constants()
         return
 
-    msg = f"Invalid data type '{type(data)}' for configuration update."
-    raise TypeError(msg)
+    # pragma: no cover
+    msg = f"Invalid data type '{type(data)}' for configuration update."  # pragma: no cover
+    raise TypeError(msg)  # pragma: no cover
 
 
 def _recompile_constants() -> None:

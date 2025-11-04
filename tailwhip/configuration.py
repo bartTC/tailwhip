@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import re
+from dataclasses import dataclass
 from enum import IntEnum
 from pathlib import Path
 
@@ -22,6 +23,15 @@ CONSOLE_THEME = rich.theme.Theme(
         "bold": "sky_blue1",
     }
 )
+
+
+@dataclass
+class Pattern:
+    """A compiled pattern for matching and reconstructing class attributes."""
+
+    name: str
+    regex: re.Pattern
+    template: str
 
 
 def get_pyproject_toml_data(start_path: Path) -> Path | None:
@@ -66,8 +76,16 @@ def _recompile_constants() -> None:
 
     config.UTILITY_PATTERNS = [re.compile("^" + g) for g in config.utility_groups]
     config.VARIANT_PATTERNS = [re.compile(v) for v in config.variant_groups]
-    config.CLASS_ATTR_RE = re.compile(config.class_regex, re.IGNORECASE | re.DOTALL)
-    config.APPLY_RE = re.compile(config.apply_regex, re.MULTILINE)
+
+    # Compile class_patterns into Pattern objects with compiled regexes
+    config.APPLY_PATTERNS = [
+        Pattern(
+            name=pattern["name"],
+            regex=re.compile(pattern["regex"], re.IGNORECASE | re.DOTALL),
+            template=pattern["template"],
+        )
+        for pattern in config.class_patterns
+    ]
 
 
 class VerbosityLevel(IntEnum):
@@ -96,14 +114,12 @@ class TailwhipConfig(dynaconf.Dynaconf):
     variant_groups: list[str]
     tailwind_colors: set[str]
     custom_colors: set[str]
-    class_regex: str
-    apply_regex: str
+    class_patterns: list[dict[str, str]]
 
     # Compiled regex patterns
     UTILITY_PATTERNS: list[re.Pattern]
     VARIANT_PATTERNS: list[re.Pattern]
-    CLASS_ATTR_RE: re.Pattern
-    APPLY_RE: re.Pattern
+    APPLY_PATTERNS: list[Pattern]
 
 
 config = TailwhipConfig(

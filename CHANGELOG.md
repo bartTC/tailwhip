@@ -16,12 +16,31 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - **Documentation**: PyPI version badge in README
 
+- **Pattern System**: Extensible pattern matching for multiple syntaxes
+  - New `class_patterns` configuration with regex and template support
+  - Built-in support for HTML `class` and CSS `@apply`
+  - Users can add custom patterns for JSX, Vue, Svelte, and other frameworks
+  - All patterns use consistent `(?P<classes>...)` named group requirement
+  - Template-based reconstruction using named groups from regex matches
+
 ### Changed
 
 - **Configuration**: Updated `example.tailwhip.toml` with comprehensive documentation
   - Aligned structure and descriptions with main `configuration.toml`
   - Added clearer usage examples for common customization scenarios
   - Improved comments and organization for better user guidance
+
+- **Architecture**: Unified pattern processing system
+  - Replaced separate `class_regex` and `apply_regex` with `class_patterns` list
+  - Single `process_pattern()` function handles all syntax types
+  - New `Pattern` dataclass for compiled regex patterns
+  - Compiled patterns stored in `config.APPLY_PATTERNS`
+
+### Removed
+
+- **Deprecated Functions**: Removed `process_html()` and `process_css()`
+  - All functionality now available through `process_text()`
+  - Tests updated to use unified `process_text()` function
 
 ## [0.9] - 2025-11-04
 

@@ -142,9 +142,39 @@ For a complete list of all configuration options with detailed explanations, see
 - **Template handling**: `skip_expressions`
 - **Sorting behavior**: `utility_groups`, `variant_groups`
 - **Color recognition**: `tailwind_colors`, `custom_colors`
-- **Pattern matching**: `class_regex`, `apply_regex` (advanced)
+- **Pattern matching**: `class_patterns` (advanced)
 
 Most users only need to customize `custom_colors` and occasionally `default_globs` or `skip_expressions`. The sorting algorithm is based on Tailwind best practices and rarely needs modification.
+
+### Advanced: Custom Pattern Matching
+
+Tailwhip uses configurable patterns to find and sort class attributes across different syntaxes. By default, it supports:
+
+- HTML `class="..."` attributes
+- CSS `@apply ...;` directives
+
+You can add custom patterns for other frameworks (JSX, Vue, Svelte, etc.) by configuring `class_patterns` in your `pyproject.toml` or custom config file:
+
+```toml
+# Example: Add support for JSX className
+[[class_patterns]]
+name = "jsx_classname"
+regex = '''\bclassName\s*=\s*(?P<quote>["'])(?P<classes>.*?)(?P=quote)'''
+template = 'className={quote}{classes}{quote}'
+
+# Example: Add support for Vue's :class binding
+[[class_patterns]]
+name = "vue_class_binding"
+regex = ''':class\s*=\s*(?P<quote>["'])(?P<classes>.*?)(?P=quote)'''
+template = ':class={quote}{classes}{quote}'
+```
+
+**Requirements:**
+- Each pattern must have a `(?P<classes>...)` named group to capture the classes
+- The `template` field uses `{classes}` and any other named groups from the regex
+- Additional named groups are optional but must match between regex and template
+
+See the [configuration file](https://github.com/bartTC/tailwhip/blob/main/tailwhip/configuration.toml) for more examples and detailed documentation.
 
 ## Changelog
 

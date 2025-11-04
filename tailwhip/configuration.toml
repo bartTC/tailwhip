@@ -405,23 +405,37 @@ custom_colors = [
 # Pattern Matching (Advanced)
 # ----------------------------------------------------------------------------
 #
-# These regex patterns define how Tailwhip finds class attributes and @apply
-# directives in your code. These are internal implementation details.
+# These patterns define how Tailwhip finds and sorts class attributes across
+# different syntaxes (HTML, CSS, JSX, etc.). Each pattern consists of:
+#
+#   - regex: A pattern that MUST contain a (?P<classes>...) named group
+#   - template: A format string for reconstructing the match with sorted classes
+#
+# REQUIRED GROUP: All regex patterns must have (?P<classes>...) to capture the
+# classes to be sorted. Additional named groups are optional but must be used
+# consistently with the template.
 #
 # CUSTOMIZATION:
-#   Override with: DON'T modify these unless you know what you're doing and have
-#   a very specific use case (e.g., custom template syntax). Incorrect patterns
-#   can break the sorting functionality entirely.
+#   Override with: Add new patterns for custom syntaxes (Vue, Svelte, etc.) or
+#   modify existing ones for specific use cases. Test thoroughly after changes.
 #
-# RECOMMENDATION: Leave these alone. They're battle-tested and cover the vast
-# majority of use cases.
+# EXAMPLES:
+#   - Vue: regex = '''<div :class\s*=\s*(?P<quote>["'])(?P<classes>.*?)(?P=quote)'''
+#          template = '<div :class={quote}{classes}{quote}'
+#
+#   - Svelte: regex = '''\bclass:(?P<name>\w+)\s*=\s*"(?P<classes>[^"]+)"'''
+#             template = 'class:{name}="{classes}"'
+#
+# RECOMMENDATION: The default patterns cover most use cases. Only add patterns
+# if you're working with frameworks or syntaxes not covered below.
 
-# Regex pattern to match class attributes in HTML.
-# Matches: class="..." or class='...'
-# Captures: full match, quote type, and class values
-class_regex = '''(?P<full>\bclass\s*=\s*(?P<quote>["'])(?P<val>.*?)(?P=quote))'''
+# Pattern definitions: Each pattern must have 'regex' and 'template' keys
+[[class_patterns]]
+name = "html_class"
+regex = '''\bclass\s*=\s*(?P<quote>["'])(?P<classes>.*?)(?P=quote)'''
+template = 'class={quote}{classes}{quote}'
 
-# Regex pattern to match @apply directives in CSS.
-# Matches: @apply <classes>;
-# Captures: the classes portion
-apply_regex = '''@apply\s+(?P<classes>[^;]+);'''
+[[class_patterns]]
+name = "css_apply"
+regex = '''@apply\s+(?P<classes>[^;]+);'''
+template = '@apply {classes};'

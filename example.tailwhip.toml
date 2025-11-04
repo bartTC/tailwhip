@@ -118,11 +118,33 @@ custom_colors = [
 
 
 # ----------------------------------------------------------------------------
-# Advanced: Pattern Matching
+# Advanced: Custom Pattern Matching
 # ----------------------------------------------------------------------------
 #
-# WARNING: Don't modify these unless you have a very specific use case.
-# Incorrect patterns can break sorting functionality.
+# IMPORTANT: The default patterns cover HTML class and CSS @apply.
+# Only add custom patterns if you're using frameworks with different syntax.
 #
-# class_regex = '''(?P<full>\bclass\s*=\s*(?P<quote>["'])(?P<val>.*?)(?P=quote))'''
-# apply_regex = '''@apply\s+(?P<classes>[^;]+);'''
+# Each pattern needs:
+#   - regex: Must contain (?P<classes>...) named group
+#   - template: Format string for reconstruction using {classes} and other named groups
+#
+# Example: Add JSX className support
+# [[class_patterns]]
+# name = "jsx_classname"
+# regex = '''\bclassName\s*=\s*(?P<quote>["'])(?P<classes>.*?)(?P=quote)'''
+# template = 'className={quote}{classes}{quote}'
+#
+# Example: Add Vue.js :class binding support
+# [[class_patterns]]
+# name = "vue_class_binding"
+# regex = ''':class\s*=\s*(?P<quote>["'])(?P<classes>.*?)(?P=quote)'''
+# template = ':class={quote}{classes}{quote}'
+#
+# Example: Add Svelte class directive
+# [[class_patterns]]
+# name = "svelte_class_directive"
+# regex = '''\bclass:(?P<name>\w+)\s*=\s*(?P<quote>["'])(?P<classes>[^"']+)(?P=quote)'''
+# template = 'class:{name}={quote}{classes}{quote}'
+#
+# WARNING: Test thoroughly after adding custom patterns!
+# Incorrect patterns can break sorting functionality.

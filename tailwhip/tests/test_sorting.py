@@ -29,7 +29,7 @@ import random
 import pytest
 
 from tailwhip.configuration import update_configuration
-from tailwhip.process import process_css, process_html, process_text
+from tailwhip.process import process_text
 from tailwhip.sorting import sort_classes
 
 
@@ -372,7 +372,7 @@ def test_kitchen_sink_example() -> None:
     <h1 class="grid-cols-[200px_1fr] p-[calc(1rem+2px)] shadow-[0_10px_20px_rgba(0,0,0,0.1)] backdrop-blur-md group-hover:bg-blue-500 [&>*]:p-4 before:content-['']">Test</h1>
 </div>
     """
-    result = process_html(html)
+    result = process_text(html)
     assert result == expected
 
 
@@ -403,7 +403,7 @@ def test_css_apply_advanced() -> None:
     @apply grid grid-cols-[200px_1fr_2fr] relative gap-[calc(1rem+2px)] m-[clamp(1rem,5vw,3rem)] p-[calc(1rem+2px)] bg-white/80 shadow-[0_35px_35px_rgba(0,0,0,0.25)] backdrop-blur-md backdrop-brightness-75 group min-[320px]:grid-cols-1 min-[768px]:grid-cols-2 lg:hover:backdrop-brightness-90 hover:backdrop-blur-lg [&_a]:hover:underline [&>*]:p-4 [&_a]:text-blue-500 before:absolute before:inset-0 before:content-[''];
 }
     """
-    result = process_css(css)
+    result = process_text(css)
     assert result == expected
 
 

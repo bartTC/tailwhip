@@ -75,8 +75,8 @@ class VerbosityLevel(IntEnum):
 
     QUIET = 0
     NORMAL = 1  # Default
-    VERBOSE = 2 # Show unchanged files
-    DIFF = 3    # Show diff of changes
+    VERBOSE = 2  # Show unchanged files
+    DIFF = 3  # Show diff of changes
     DEBUG = 4
 
 

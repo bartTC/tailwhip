@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.9.3] - 2025-01-04
+
 ### Changed
 
 - **Sorting**: Position utilities (top, right, bottom, left) now sort clockwise

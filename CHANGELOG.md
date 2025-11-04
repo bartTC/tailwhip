@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- **Sorting**: Position utilities (top, right, bottom, left) now sort clockwise
+  - Split combined positioning pattern into separate utility groups
+  - Order: top → right → bottom → left (clockwise direction)
+
 ## [0.9.2] - 2025-01-04
 
 ### Removed

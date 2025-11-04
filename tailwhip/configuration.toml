@@ -154,7 +154,12 @@ utility_groups = [
     '(box-border|box-content|box-decoration-(slice|clone))',
     '(isolate|isolation-auto)',
     '(static|fixed|absolute|relative|sticky)',
-    '(inset|top|right|bottom|left|z)-',
+    '(inset)-',
+    '(top)-',
+    '(right)-',
+    '(bottom)-',
+    '(left)-',
+    '(z)-',
     '(float|clear)-(left|right|none|start|end)',
     # floats/clears
     '(columns)-',

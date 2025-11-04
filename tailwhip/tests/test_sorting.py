@@ -313,6 +313,13 @@ CLASS_GROUPS = (
         "lg:p-4",
         "xl:p-4",
     ],
+    # Top -> Right -> Bottom -> Left
+    [
+        "top-[10px]",
+        "right-[20px]",
+        "bottom-[30px]",
+        "left-[40px]",
+    ],
 )
 
 

@@ -74,9 +74,10 @@ class VerbosityLevel(IntEnum):
     """Verbosity level enum."""
 
     QUIET = 0
-    NORMAL = 1
-    VERBOSE = 2
-    DEBUG = 3
+    NORMAL = 1  # Default
+    VERBOSE = 2 # Show unchanged files
+    DIFF = 3    # Show diff of changes
+    DEBUG = 4
 
 
 class TailwhipConfig(dynaconf.Dynaconf):

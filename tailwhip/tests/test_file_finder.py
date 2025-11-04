@@ -12,8 +12,9 @@ Test Coverage:
 - Multiple path inputs processed together
 - Edge cases (nonexistent paths, nested directories)
 
-All tests run in an isolated testdata directory to avoid interference with
-the actual project files.
+All tests run in an isolated temporary directory created by the testdata_dir
+fixture. Files are created on-demand with empty content, keeping the repository
+clean and avoiding test pollution.
 """
 
 from __future__ import annotations
@@ -24,15 +25,50 @@ import pytest
 
 from tailwhip.files import find_files
 
-# Get the testdata directory relative to this test file
-TESTDATA = Path(__file__).parent / "testdata"
-
 
 @pytest.fixture(autouse=True)
-def testdata_dir(monkeypatch: pytest.MonkeyPatch) -> Path:
-    """Provide the testdata directory path."""
-    monkeypatch.chdir(TESTDATA)
-    return TESTDATA
+def testdata_dir(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> Path:
+    """
+    Create a temporary test directory structure with empty files.
+
+    Structure:
+        tmp_path/
+        ├── index.html
+        ├── styles.css
+        ├── theme.pcss
+        ├── utilities.postcss
+        ├── app.less
+        ├── templates/
+        │   └── page.html
+        ├── styles/
+        │   └── components/
+        │       ├── button.scss
+        │       └── card.sass
+        └── nested/
+    """
+    # Create root-level files
+    (tmp_path / "index.html").touch()
+    (tmp_path / "styles.css").touch()
+    (tmp_path / "theme.pcss").touch()
+    (tmp_path / "utilities.postcss").touch()
+    (tmp_path / "app.less").touch()
+
+    # Create subdirectory structure with files
+    templates_dir = tmp_path / "templates"
+    templates_dir.mkdir()
+    (templates_dir / "page.html").touch()
+
+    styles_components_dir = tmp_path / "styles" / "components"
+    styles_components_dir.mkdir(parents=True)
+    (styles_components_dir / "button.scss").touch()
+    (styles_components_dir / "card.sass").touch()
+
+    # Create empty nested directory
+    (tmp_path / "nested").mkdir()
+
+    # Change to the temporary directory for all tests
+    monkeypatch.chdir(tmp_path)
+    return tmp_path
 
 
 def test_find_files_current_directory() -> None:

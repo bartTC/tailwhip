@@ -178,4 +178,4 @@ See the [configuration file](https://github.com/bartTC/tailwhip/blob/main/tailwh
 
 ## Changelog
 
-See [CHANGELOG.md](CHANGELOG.md) for a complete list of changes and version history.
+See [CHANGELOG.md](https://github.com/bartTC/tailwhip/blob/main/CHANGELOG.md) for a complete list of changes and version history.

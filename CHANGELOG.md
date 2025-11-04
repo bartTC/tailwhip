@@ -207,6 +207,8 @@ The initial alpha releases established the core functionality of Tailwhip.
 - **0.9a2** - Bug fixes, improved error handling, and type hint improvements
 - **0.9a3** - Enhanced template syntax handling and documentation updates
 
-[Unreleased]: https://github.com/bartTC/tailwhip/compare/v0.9...HEAD
+[Unreleased]: https://github.com/bartTC/tailwhip/compare/v0.9.2...HEAD
+[0.9.2]: https://github.com/bartTC/tailwhip/compare/v0.9.1...v0.9.2
+[0.9.1]: https://github.com/bartTC/tailwhip/compare/v0.9...v0.9.1
 [0.9]: https://github.com/bartTC/tailwhip/compare/v0.9b0...v0.9
 [0.9b0]: https://github.com/bartTC/tailwhip/releases/tag/v0.9b0

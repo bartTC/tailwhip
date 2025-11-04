@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Removed
+
+- **Configuration**: Removed "primary" from default `custom_colors` list
+  - The default config should not include example custom colors
+  - Users should add their own custom colors as needed
+
 ### Added
 
 - **Tests**: Added tests for custom pattern configuration

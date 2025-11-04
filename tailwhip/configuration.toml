@@ -396,9 +396,7 @@ tailwind_colors = [
 #
 # Add them here:
 #   custom_colors = ["brand", "accent"]
-custom_colors = [
-    "primary",
-]
+custom_colors = []
 
 
 # ----------------------------------------------------------------------------

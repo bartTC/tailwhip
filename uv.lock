@@ -244,7 +244,7 @@ wheels = [
 
 [[package]]
 name = "tailwhip"
-version = "0.9b0"
+version = "0.9"
 source = { editable = "." }
 dependencies = [
     { name = "dynaconf" },

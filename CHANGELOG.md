@@ -7,6 +7,44 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.9] - 2025-11-04
+
+### Added
+
+- **CI/CD**: GitHub Actions workflow for automated testing
+  - Python matrix testing across versions 3.11, 3.12, 3.13, and 3.14
+  - Runs on push and pull requests to main branch
+  - Uses uv for fast dependency management
+
+- **Documentation Enhancements**
+  - CI/CD status badge in README
+  - Python version support badge
+  - MIT license badge
+  - Direct link to CHANGELOG.md from README
+
+- **Testing Infrastructure**
+  - Comprehensive tests for file writing functionality
+  - Edge case coverage for file operations
+  - Coverage configuration with proper exclusions
+
+- **Verbosity Levels**: New DIFF mode for showing changes
+  - Enhanced output options for reviewing modifications
+  - Better visibility into what will be changed
+
+### Changed
+
+- **Configuration Access**: Refactored to use direct attribute access instead of dictionary keys
+  - Cleaner, more Pythonic API
+  - Better IDE autocomplete support
+
+### Fixed
+
+- **Documentation**: Corrected README usage example for `--configuration` flag syntax
+
+### Removed
+
+- **Code Cleanup**: Removed unused `datatypes.py` module
+
 ## [0.9b0] - 2025-01-04
 
 ### Added
@@ -107,5 +145,6 @@ The initial alpha releases established the core functionality of Tailwhip.
 - **0.9a2** - Bug fixes, improved error handling, and type hint improvements
 - **0.9a3** - Enhanced template syntax handling and documentation updates
 
-[Unreleased]: https://github.com/bartTC/tailwhip/compare/v0.9b0...HEAD
+[Unreleased]: https://github.com/bartTC/tailwhip/compare/v0.9...HEAD
+[0.9]: https://github.com/bartTC/tailwhip/compare/v0.9b0...v0.9
 [0.9b0]: https://github.com/bartTC/tailwhip/releases/tag/v0.9b0

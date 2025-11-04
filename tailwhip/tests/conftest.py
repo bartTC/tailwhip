@@ -17,9 +17,10 @@ from tailwhip.datatypes import Config
 TESTDATA = Path(__file__).parent / "testdata"
 
 
-@pytest.fixture
-def testdata_dir() -> Path:
+@pytest.fixture(autouse=True)
+def testdata_dir(monkeypatch: pytest.MonkeyPatch) -> Path:
     """Provide the testdata directory path."""
+    monkeypatch.chdir(TESTDATA)
     return TESTDATA
 
 

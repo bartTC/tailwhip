@@ -3,20 +3,13 @@
 from __future__ import annotations
 
 from pathlib import Path
-from typing import TYPE_CHECKING
 
 from tailwhip.files import find_files
 from tailwhip.tests.conftest import update_config
 
-if TYPE_CHECKING:
-    import pytest
 
-
-def test_find_files_current_directory(
-    testdata_dir: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_find_files_current_directory() -> None:
     """Test finding files with '.' as input path."""
-    monkeypatch.chdir(testdata_dir)
     update_config(paths=[Path()])
 
     results = sorted(find_files())
@@ -28,11 +21,8 @@ def test_find_files_current_directory(
     assert any(f.name == "page.html" for f in results)
 
 
-def test_find_files_relative_directory(
-    testdata_dir: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_find_files_relative_directory() -> None:
     """Test finding files with relative_dir/ as input path."""
-    monkeypatch.chdir(testdata_dir)
     update_config(paths=[Path("templates/")])
 
     results = sorted(find_files())
@@ -55,11 +45,8 @@ def test_find_files_absolute_directory(testdata_dir: Path) -> None:
     assert any(f.name == "page.html" for f in results)
 
 
-def test_find_files_specific_html_file(
-    testdata_dir: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_find_files_specific_html_file() -> None:
     """Test finding files with path/to/file.html as input path."""
-    monkeypatch.chdir(testdata_dir)
     update_config(paths=[Path("index.html")])
 
     results = list(find_files())
@@ -69,11 +56,8 @@ def test_find_files_specific_html_file(
     assert results[0].name == "index.html"
 
 
-def test_find_files_specific_css_file(
-    testdata_dir: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_find_files_specific_css_file() -> None:
     """Test finding files with path/to/css.html as input path."""
-    monkeypatch.chdir(testdata_dir)
     update_config(paths=[Path("styles.css")])
 
     results = list(find_files())
@@ -83,11 +67,8 @@ def test_find_files_specific_css_file(
     assert results[0].name == "styles.css"
 
 
-def test_find_files_specific_custom_extension(
-    testdata_dir: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_find_files_specific_custom_extension() -> None:
     """Test finding files with path/to/customglob.glob as input path."""
-    monkeypatch.chdir(testdata_dir)
     update_config(paths=[Path("theme.pcss")])
 
     results = list(find_files())
@@ -97,11 +78,8 @@ def test_find_files_specific_custom_extension(
     assert results[0].name == "theme.pcss"
 
 
-def test_find_files_simple_glob(
-    testdata_dir: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_find_files_simple_glob() -> None:
     """Test finding files with path/*.html glob pattern."""
-    monkeypatch.chdir(testdata_dir)
     update_config(paths=[Path("templates/*.html")])
     results = list(find_files())
 
@@ -111,11 +89,8 @@ def test_find_files_simple_glob(
     assert all(f.suffix == ".html" for f in results)
 
 
-def test_find_files_recursive_glob(
-    testdata_dir: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_find_files_recursive_glob() -> None:
     """Test finding files with path/**/*.html glob pattern."""
-    monkeypatch.chdir(testdata_dir)
     update_config(paths=[Path("**/*.html")])
 
     results = sorted(find_files())
@@ -127,11 +102,8 @@ def test_find_files_recursive_glob(
     assert all(f.suffix == ".html" for f in results)
 
 
-def test_find_files_complex_glob(
-    testdata_dir: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_find_files_complex_glob() -> None:
     """Test finding files with more complex glob patterns."""
-    monkeypatch.chdir(testdata_dir)
     update_config(paths=[Path("*.css"), Path("*.pcss"), Path("*.postcss")])
 
     results = sorted(find_files())
@@ -143,11 +115,8 @@ def test_find_files_complex_glob(
     assert any(f.name == "utilities.postcss" for f in results)
 
 
-def test_find_files_deduplication(
-    testdata_dir: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_find_files_deduplication() -> None:
     """Test that duplicate files are deduplicated."""
-    monkeypatch.chdir(testdata_dir)
     update_config(paths=[Path("index.html"), Path("./index.html"), Path("index.html")])
 
     results = list(find_files())
@@ -157,11 +126,8 @@ def test_find_files_deduplication(
     assert results[0].name == "index.html"
 
 
-def test_find_files_multiple_paths(
-    testdata_dir: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_find_files_multiple_paths() -> None:
     """Test finding files from multiple input paths."""
-    monkeypatch.chdir(testdata_dir)
     update_config(paths=[Path("index.html"), Path("templates/"), Path("*.css")])
 
     results = sorted(find_files())
@@ -173,11 +139,8 @@ def test_find_files_multiple_paths(
     assert any(f.name == "styles.css" for f in results)
 
 
-def test_find_files_nonexistent_path(
-    testdata_dir: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_find_files_nonexistent_path() -> None:
     """Test finding files with nonexistent path (treated as glob)."""
-    monkeypatch.chdir(testdata_dir)
     update_config(paths=[Path("nonexistent/*.html")])
 
     results = list(find_files())
@@ -186,11 +149,8 @@ def test_find_files_nonexistent_path(
     assert len(results) == 0
 
 
-def test_find_files_nested_directory(
-    testdata_dir: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_find_files_nested_directory() -> None:
     """Test finding files in nested directory structures."""
-    monkeypatch.chdir(testdata_dir)
     update_config(paths=[Path("styles/")])
 
     results = sorted(find_files())
@@ -199,11 +159,25 @@ def test_find_files_nested_directory(
     assert isinstance(results, list)
 
 
-def test_find_files_current_dir(
-    testdata_dir: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_find_nested_but_not_direct_child() -> None:
+    """Select child directory which is not an immediate child,.
+
+    Select a directory which is not an immediate child, does not fail.
+    This is a regression test for a glob pattern bug.
+    """
+    # Components exists in './styles/component'. In an earlier version it was
+    # discovered, but paths were unable to be resolved.
+    update_config(paths=[Path("components")])
+
+    results = sorted(find_files())
+
+    # Should not error out but also not find any files
+    assert isinstance(results, list)
+    assert len(results) == 0
+
+
+def test_find_files_current_dir() -> None:
     """Test finding files with '.' as input path."""
-    monkeypatch.chdir(testdata_dir)
     update_config(paths=[Path()])
 
     results = sorted(find_files())

@@ -37,6 +37,7 @@ Repository = "https://github.com/bartTC/tailwhip/"
 dev = [
     "pytest",
     "pytest-cov",
+    "ruff",
 ]
 
 [project.scripts]

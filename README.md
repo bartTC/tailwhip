@@ -1,5 +1,9 @@
 # Tailwhip — Tailwind CSS class sorter
 
+[![Test](https://github.com/bartTC/tailwhip/actions/workflows/test.yml/badge.svg)](https://github.com/bartTC/tailwhip/actions/workflows/test.yml)
+[![Python Version](https://img.shields.io/badge/python-3.11%20%7C%203.12%20%7C%203.13%20%7C%203.14-blue)](https://www.python.org/downloads/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+
 Tailwhip is a pure Python Tailwind CSS class sorter that works with any HTML or CSS
 file — including Django templates and other templating languages.
 
@@ -140,3 +144,7 @@ For a complete list of all configuration options with detailed explanations, see
 - **Pattern matching**: `class_regex`, `apply_regex` (advanced)
 
 Most users only need to customize `custom_colors` and occasionally `default_globs` or `skip_expressions`. The sorting algorithm is based on Tailwind best practices and rarely needs modification.
+
+## Changelog
+
+See [CHANGELOG.md](CHANGELOG.md) for a complete list of changes and version history.

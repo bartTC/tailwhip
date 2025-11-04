@@ -24,14 +24,11 @@ if TYPE_CHECKING:
 class FileResult:
     """Result of processing a single file."""
 
-    path: Path
     skipped: bool
     changed: bool
-    old_text: str | None
-    new_text: str | None
 
 
-def find_files() -> Generator[Path]:  # noqa: C901
+def find_files() -> Generator[Path]:
     """Find all HTML/CSS files from a list of paths.
 
     Processes multiple path inputs (files, directories, or glob patterns), expands each
@@ -76,7 +73,6 @@ def find_files() -> Generator[Path]:  # noqa: C901
         # Use wcmatch to handle all patterns uniformly (files, globs, braces, etc.)
         for pattern in patterns:
             for match_str in glob.glob(pattern, flags=flags):
-
                 match = Path(match_str)
                 if not match.is_file():
                     continue
@@ -113,19 +109,46 @@ def _process_file(f: Path) -> FileResult:
 
     Returns:
         FileResult with processing status and file content
+
     """
+    config = get_config()
+
     try:
         old_text = f.read_text(encoding="utf-8")
     except UnicodeDecodeError:
-        return FileResult(path=f, skipped=True, changed=False, old_text=None, new_text=None)
+        config.console.print(
+            f"[red]Unable to read[/red] [filename]{f}[/filename]",
+            highlight=False,
+        )
+        return FileResult(skipped=True, changed=False)
 
     new_text = process_text(old_text)
 
     # Skip files that don't need changes
     if old_text == new_text:
-        return FileResult(path=f, skipped=True, changed=False, old_text=old_text, new_text=None)
+        if config.verbosity >= VERBOSITY_LOUD:
+            config.console.print(
+                f"[grey30]Already sorted {f}[/grey30]",
+                highlight=False,
+            )
+        return FileResult(skipped=True, changed=False)
 
-    return FileResult(path=f, skipped=False, changed=True, old_text=old_text, new_text=new_text)
+    # Write changes if in write mode
+    if config.write:
+        f.write_text(new_text, encoding="utf-8")
+
+    # Log the change
+    if config.verbosity > VERBOSITY_NONE:
+        if config.write:
+            config.console.print(f"[dim]Updated[/dim] [filename]{f}[/filename]")
+        else:
+            config.console.print(f"[dim]Would update[/dim] [filename]{f}[/filename]")
+
+        if config.verbosity >= VERBOSITY_ALL:
+            diff = get_diff(f, old_text, new_text)
+            config.console.print(Padding(diff, (1, 0, 1, 4)))
+
+    return FileResult(skipped=False, changed=True)
 
 
 def apply_changes(*, targets: Iterable[Path]) -> tuple[bool, int, int]:
@@ -151,58 +174,22 @@ def apply_changes(*, targets: Iterable[Path]) -> tuple[bool, int, int]:
         (1, 1)  # 1 skipped (no changes), 1 changed
 
     """
-    config = get_config()
+    get_config()
     skipped = 0
     changed = 0
     found_any = False
     targets_list = list(targets)
 
     with ThreadPoolExecutor() as executor:
-        futures = {executor.submit(_process_file, f): f for f in targets_list}
+        futures = [executor.submit(_process_file, f) for f in targets_list]
 
         for future in as_completed(futures):
             found_any = True
             result = future.result()
 
-            if result.old_text is None:
-                # UnicodeDecodeError occurred
-                config.console.print(
-                    f"[red]Unable to read[/red] [filename]{result.path}[/filename]",
-                    highlight=False,
-                )
-                skipped += 1
-                continue
-
             if result.skipped:
-                if config.verbosity >= VERBOSITY_LOUD:
-                    config.console.print(
-                        f"[grey30]Already sorted {result.path}[/grey30]",
-                        highlight=False,
-                    )
                 skipped += 1
-                continue
-
-            changed += 1
-
-            # Write changes if in write mode, otherwise just report
-            if config.write:
-                result.path.write_text(result.new_text, encoding="utf-8")
-
-            # No report if verbosity is low
-            if config.verbosity == VERBOSITY_NONE:
-                continue
-
-            if config.write:
-                config.console.print(
-                    f"[dim]Updated[/dim] [filename]{result.path}[/filename]"
-                )
             else:
-                config.console.print(
-                    f"[dim]Would update[/dim] [filename]{result.path}[/filename]"
-                )
-
-            if config.verbosity >= VERBOSITY_ALL:
-                diff = get_diff(result.path, result.old_text, result.new_text)
-                config.console.print(Padding(diff, (1, 0, 1, 4)))
+                changed += 1
 
     return found_any, skipped, changed

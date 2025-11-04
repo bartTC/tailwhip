@@ -17,7 +17,7 @@ def set_config(config: Config) -> None:
         config: The Config instance to use globally
 
     """
-    global _config
+    global _config  # noqa: PLW0603
     _config = config
 
 
@@ -32,5 +32,6 @@ def get_config() -> Config:
 
     """
     if _config is None:
-        raise RuntimeError("Config not initialized. Call set_config() first.")
+        msg = "Config not initialized. Call set_config() first."
+        raise RuntimeError(msg)
     return _config

@@ -114,7 +114,7 @@ skip_expressions = ["{{", "{%", "<%", "{-"]  # Add Nunjucks syntax
 Then use it with:
 
 ```bash
-$ tailwhip templates/ --configuration tailwhip.toml
+$ tailwhip templates/ --configuration=tailwhip.toml
 ```
 
 ### Configuration Precedence

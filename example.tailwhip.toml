@@ -1,66 +1,128 @@
-# Example custom configuration file for tailwhip
+# ============================================================================
+# Example Tailwhip Configuration
+# ============================================================================
 #
-# This file demonstrates how to customize tailwhip's behavior by overriding
-# default values in constants.toml. You only need to specify the values you
-# want to change - all other values will use the defaults.
+# This file demonstrates how to customize Tailwhip's behavior.
+# Copy this to your project and modify as needed.
 #
-# Configuration Priority (highest to lowest):
-#   1. Custom config file (--config flag)
-#   2. pyproject.toml [tool.tailwhip] section
-#   3. Built-in defaults (constants.toml)
+# USAGE:
+#   tailwhip templates/ --configuration=example.tailwhip.toml
 #
-# Usage Option 1: Custom config file
-#   tailwhip --config example_custom_config.toml path/to/files/
-#
-# Usage Option 2: Add to your pyproject.toml (automatic discovery)
+# OR add these settings to your pyproject.toml:
 #   [tool.tailwhip]
-#   globs = ["**/*.jsx", "**/*.tsx"]
-#   skip_expressions = ["{{", "{%", "<?"]
+#   verbosity = 2
+#   custom_colors = ["brand", "accent"]
+#
+# PRECEDENCE (lowest to highest):
+#   defaults (built-in) < pyproject.toml < custom config < CLI arguments
+#
+# TIP: You only need to specify the values you want to override.
+# All other values will use Tailwhip's sensible defaults.
+# ============================================================================
 
-# Example: Process different file types
-# globs = [
-#     "**/*.jsx",
-#     "**/*.tsx",
-#     "**/*.vue",
+
+# ----------------------------------------------------------------------------
+# Output Settings
+# ----------------------------------------------------------------------------
+
+# Increase verbosity to see detailed changes before writing
+# 0 = quiet, 1 = normal (default), 2 = verbose, 3 = debug
+verbosity = 2
+
+# Write mode: false = dry-run (safe preview), true = modify files
+# Override with --write or -w flag
+# write_mode = false
+
+
+# ----------------------------------------------------------------------------
+# File Discovery
+# ----------------------------------------------------------------------------
+
+# Customize which files to process when scanning directories
+# Add your template file extensions or frontend component files
+default_globs = [
+    "**/*.html",
+    "**/*.css",
+    "**/*.jsx",      # React components
+    "**/*.tsx",      # TypeScript React
+    "**/*.vue",      # Vue components
+    # "**/*.liquid", # Shopify templates
+    # "**/*.jinja2", # Jinja templates
+]
+
+
+# ----------------------------------------------------------------------------
+# Template Expression Handling
+# ----------------------------------------------------------------------------
+
+# Template syntax to detect and skip during sorting
+# If any of these appear in a class attribute, it will be left unchanged
+skip_expressions = [
+    "{{",  # Django, Jinja2, Liquid, Handlebars
+    "{%",  # Django, Jinja2, Liquid
+    "<%",  # ERB, EJS
+    "[[",  # Custom delimiter example
+    "]]",  # Custom delimiter example
+    # "<?",  # PHP
+    # "{-",  # Nunjucks
+]
+
+
+# ----------------------------------------------------------------------------
+# Color Recognition
+# ----------------------------------------------------------------------------
+
+# Add custom Tailwind colors from your tailwind.config.js
+# This ensures Tailwhip properly recognizes and sorts your custom color utilities
+custom_colors = [
+    "brand",
+    "accent",
+    "company",
+    "primary",
+    "secondary",
+]
+
+
+# ----------------------------------------------------------------------------
+# Advanced: Utility Class Ordering
+# ----------------------------------------------------------------------------
+#
+# IMPORTANT: Most users should NOT customize this section.
+# The default utility_groups follow Tailwind best practices.
+#
+# Only override if you have custom utilities that need specific positioning.
+# See tailwhip/configuration.toml for the full list and documentation.
+#
+# Example: Add a custom utility group
+# utility_groups = [
+#     # ... (copy full list from configuration.toml)
+#     '(custom-utility)-',  # Add your custom pattern
 # ]
 
-# Example: Add custom skip expressions for your template engine
-# skip_expressions = [
-#     "{{",   # Default: Handlebars, Django
-#     "{%",   # Default: Django, Jinja2
-#     "<%",   # Default: ERB
-#     "<?",   # Custom: PHP
+
+# ----------------------------------------------------------------------------
+# Advanced: Variant Ordering
+# ----------------------------------------------------------------------------
+#
+# IMPORTANT: Most users should NOT customize this section.
+# The default variant_groups follow Tailwind conventions.
+#
+# Only override if you have custom variants from plugins.
+# See tailwhip/configuration.toml for the full list and documentation.
+#
+# Example: Add a custom variant
+# variant_groups = [
+#     # ... (copy full list from configuration.toml)
+#     '(custom-variant):',  # Add your custom pattern
 # ]
 
-# Example: Add custom Tailwind colors from your tailwind.config.js
-# tailwind_colors = [
-#     # Include all standard colors you want to support
-#     "transparent",
-#     "current",
-#     "black",
-#     "white",
-#     "gray",
-#     "red",
-#     "blue",
-#     "green",
-#     # Add your custom colors
-#     "brand",
-#     "company",
-#     "accent",
-# ]
 
-# Example: Customize the utility class sorting order
-# Add new patterns to group_order to prioritize your custom utilities
-# group_order = [
-#     # ... (copy from constants.toml and modify)
-#     # Add your custom patterns:
-#     '(custom-utility)-',
-# ]
-
-# Example: Customize variant sorting order
-# Add new patterns to variant_prefix_order for custom variants
-# variant_prefix_order = [
-#     # ... (copy from constants.toml and modify)
-#     # Add your custom variants:
-#     '(custom-variant):',
-# ]
+# ----------------------------------------------------------------------------
+# Advanced: Pattern Matching
+# ----------------------------------------------------------------------------
+#
+# WARNING: Don't modify these unless you have a very specific use case.
+# Incorrect patterns can break sorting functionality.
+#
+# class_regex = '''(?P<full>\bclass\s*=\s*(?P<quote>["'])(?P<val>.*?)(?P=quote))'''
+# apply_regex = '''@apply\s+(?P<classes>[^;]+);'''

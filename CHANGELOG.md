@@ -16,6 +16,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - **Documentation**: PyPI version badge in README
 
+### Changed
+
+- **Configuration**: Updated `example.tailwhip.toml` with comprehensive documentation
+  - Aligned structure and descriptions with main `configuration.toml`
+  - Added clearer usage examples for common customization scenarios
+  - Improved comments and organization for better user guidance
+
 ## [0.9] - 2025-11-04
 
 ### Added

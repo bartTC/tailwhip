@@ -153,20 +153,32 @@ Tailwhip uses configurable patterns to find and sort class attributes across dif
 - HTML `class="..."` attributes
 - CSS `@apply ...;` directives
 
-You can add custom patterns for other frameworks (JSX, Vue, Svelte, etc.) by configuring `class_patterns` in your `pyproject.toml` or custom config file:
+You can add custom patterns for other frameworks (JSX, Vue, Svelte, etc.) by configuring `class_patterns` in your `pyproject.toml` or custom config file.
+
+**Important:** Custom `class_patterns` **replace** (not extend) the defaults, just like any other configuration setting. You must include the default HTML and CSS patterns if you want to keep them:
 
 ```toml
-# Example: Add support for JSX className
-[[class_patterns]]
+# Example: Add JSX className support while keeping HTML class and CSS @apply
+# In pyproject.toml, use [[tool.tailwhip.class_patterns]]
+# In custom config file, use [[class_patterns]]
+
+# Keep default: HTML class attribute
+[[tool.tailwhip.class_patterns]]
+name = "html_class"
+regex = '''\bclass\s*=\s*(?P<quote>["'])(?P<classes>.*?)(?P=quote)'''
+template = 'class={quote}{classes}{quote}'
+
+# Keep default: CSS @apply directive
+[[tool.tailwhip.class_patterns]]
+name = "css_apply"
+regex = '''@apply\s+(?P<classes>[^;]+);'''
+template = '@apply {classes};'
+
+# Add custom: JSX className
+[[tool.tailwhip.class_patterns]]
 name = "jsx_classname"
 regex = '''\bclassName\s*=\s*(?P<quote>["'])(?P<classes>.*?)(?P=quote)'''
 template = 'className={quote}{classes}{quote}'
-
-# Example: Add support for Vue's :class binding
-[[class_patterns]]
-name = "vue_class_binding"
-regex = ''':class\s*=\s*(?P<quote>["'])(?P<classes>.*?)(?P=quote)'''
-template = ':class={quote}{classes}{quote}'
 ```
 
 **Requirements:**

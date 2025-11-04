@@ -7,6 +7,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- **Tests**: Added tests for custom pattern configuration
+  - `test_custom_pattern_from_pyproject`: Tests custom patterns via `pyproject.toml`
+  - `test_custom_pattern_from_config_file`: Tests custom patterns via custom config file
+  - Both tests verify JSX `className` pattern as example of extensibility
+  - Ensures all patterns (HTML, CSS, custom) work correctly together
+  - Demonstrates correct TOML syntax for both configuration methods
+
+### Changed
+
+- **Documentation**: Clarified that `class_patterns` replace (not extend) defaults
+  - Updated README.md with explicit warning about replacement behavior
+  - Updated configuration.toml with IMPORTANT note about preserving defaults
+  - Updated example.tailwhip.toml with complete example showing default patterns
+  - Added JSX example showing how to include defaults when adding custom patterns
+
 ## [0.9.1] - 2025-01-04
 
 ### Added

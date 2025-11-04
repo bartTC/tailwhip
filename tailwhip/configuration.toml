@@ -416,10 +416,17 @@ custom_colors = [
 # consistently with the template.
 #
 # CUSTOMIZATION:
-#   Override with: Add new patterns for custom syntaxes (Vue, Svelte, etc.) or
+#   IMPORTANT: Custom class_patterns REPLACE (not extend) the defaults, just like
+#   any other configuration setting. If you define class_patterns, you must include
+#   the default HTML and CSS patterns if you want to keep them.
+#
+#   Override with: Add new patterns for custom syntaxes (JSX, Vue, Svelte, etc.) or
 #   modify existing ones for specific use cases. Test thoroughly after changes.
 #
 # EXAMPLES:
+#   - JSX: regex = '''\bclassName\s*=\s*(?P<quote>["'])(?P<classes>.*?)(?P=quote)'''
+#          template = 'className={quote}{classes}{quote}'
+#
 #   - Vue: regex = '''<div :class\s*=\s*(?P<quote>["'])(?P<classes>.*?)(?P=quote)'''
 #          template = '<div :class={quote}{classes}{quote}'
 #

@@ -124,7 +124,7 @@ def _process_file(f: Path) -> FileResult:
 
     # Skip files that don't need changes
     if old_text == new_text:
-        if config["verbosity"] >= VerbosityLevel.VERBOSE:
+        if config.verbosity >= VerbosityLevel.VERBOSE:
             config.console.print(
                 f"[grey30]Already sorted {f}[/grey30]",
                 highlight=False,
@@ -132,7 +132,7 @@ def _process_file(f: Path) -> FileResult:
         return FileResult(skipped=True, changed=False)
 
     # Write changes if in write mode
-    if config["write_mode"]:
+    if config.write_mode:
         f.write_text(new_text, encoding="utf-8")
 
     # Log the change
@@ -142,7 +142,7 @@ def _process_file(f: Path) -> FileResult:
         else:
             config.console.print(f"[dim]Would update[/dim] [filename]{f}[/filename]")
 
-        if config.verbosity >= VerbosityLevel.VERBOSE:
+        if config.verbosity >= VerbosityLevel.DIFF:
             diff = get_diff(f, old_text, new_text)
             config.console.print(Padding(diff, (1, 0, 1, 4)))
 

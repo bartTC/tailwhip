@@ -146,7 +146,7 @@ def run(  # noqa: PLR0913
             "\nUse [important] -v [/important] (show unchanged files) or [important] -vv [/important] (show diff preview) for more detail."
         )
 
-    if not config["write_mode"]:
+    if not config.write_mode:
         config.console.print(
             "\n:warning: Dry Run. No files were actually written. "
             "Use [important] --write [/important] to write changes."

@@ -412,10 +412,16 @@ def test_css_apply_advanced() -> None:
     [
         '<div class="p-4 container {{ extra_classes }}"></div>',
         '<div class="{% if not active %}hidden{% endif %} p-4 container"></div>',
+        ".container{ @apply p-4 container {{ extra_classes }}; }",
+        ".container{ @apply; }",
+        ".container{ @apply ; }",
+        '<div class=""></div>',
+        '<div class=" "></div>',
+        "<div class=''></div>",
     ],
 )
-def test_template_markup_in_class(html: str) -> None:
-    """Classes with Template syntax are not changed."""
+def test_unprocessed_content(html: str) -> None:
+    """Empty classes or classes with Template syntax are not changed."""
     result = process_text(html)
     assert result == html
 
@@ -431,9 +437,29 @@ def test_template_markup_in_class(html: str) -> None:
             '{% if not active %}<div class="p-4 container">{{ title }}</div>{% endif %}',
             '{% if not active %}<div class="container p-4">{{ title }}</div>{% endif %}',
         ),
+        (
+            "{% if css %}.container{ @apply p-4 container; }{% endif %}",
+            "{% if css %}.container{ @apply container p-4; }{% endif %}",
+        ),
     ],
 )
 def test_template_markup_outside(html: str, expected: str) -> None:
     """Template syntax is not in the classes, so this is sorted."""
+    result = process_text(html)
+    assert result == expected
+
+
+@pytest.mark.parametrize(
+    ("html", "expected"),
+    [
+        (
+            '<div class="p-4 container p-4"></div>',
+            '<div class="container p-4"></div>',
+        ),
+        ("@apply p-4 container p-4;", "@apply container p-4;"),
+    ],
+)
+def test_duplicate_classes_are_squashed(html: str, expected: str) -> None:
+    """Duplicate classes are squashed."""
     result = process_text(html)
     assert result == expected

@@ -10,7 +10,7 @@ Test Coverage:
 - Glob pattern matching (*.html, **/*.css, custom extensions)
 - Path deduplication (same file specified multiple ways)
 - Multiple path inputs processed together
-- Edge cases (nonexistent paths, nested directories)
+- Edge cases (nonexistent paths, nested directories, empty directories)
 
 All tests run in an isolated temporary directory created by the testdata_dir
 fixture. Files are created on-demand with empty content, keeping the repository
@@ -44,7 +44,8 @@ def testdata_dir(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> Path:
         │   └── components/
         │       ├── button.scss
         │       └── card.sass
-        └── nested/
+        ├── nested/
+        └── empty/
     """
     # Create root-level files
     (tmp_path / "index.html").touch()
@@ -63,8 +64,9 @@ def testdata_dir(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> Path:
     (styles_components_dir / "button.scss").touch()
     (styles_components_dir / "card.sass").touch()
 
-    # Create empty nested directory
+    # Create empty directories for edge case testing
     (tmp_path / "nested").mkdir()
+    (tmp_path / "empty").mkdir()
 
     # Change to the temporary directory for all tests
     monkeypatch.chdir(tmp_path)
@@ -215,5 +217,14 @@ def test_find_nested_but_not_direct_child() -> None:
     results = sorted(find_files(paths=[Path("components")]))
 
     # Should not error out but also not find any files
+    assert isinstance(results, list)
+    assert len(results) == 0
+
+
+def test_find_files_empty_directory() -> None:
+    """Test scanning an empty directory returns no files without errors."""
+    results = list(find_files(paths=[Path("empty/")]))
+
+    # Should complete successfully but return no files
     assert isinstance(results, list)
     assert len(results) == 0

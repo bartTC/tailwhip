@@ -81,6 +81,7 @@ skip_expressions = ["<%", "%>"]
         ([], 2),  # No arguments - should exit with code 2
         (["-h"], 0),  # Help flag - should succeed
         (["--help"], 0),  # Help flag (long form) - should succeed
+        (["--version"], 0),  # Version (long form) - should succeed
     ],
 )
 def test_cli_basic_args(args: list[str], expected_exit_code: int) -> None:
@@ -199,3 +200,41 @@ def test_config_quiet_flag_overrides_verbosity(temp_test_file: Path) -> None:
     assert result.exit_code == 0
     # --quiet should override -vvv
     assert config.verbosity == 0
+
+
+def test_no_files_found_error(tmp_path: Path) -> None:
+    """Test that CLI exits with error when no files are found."""
+    # Create an empty directory with no HTML/CSS files
+    empty_dir = tmp_path / "empty"
+    empty_dir.mkdir()
+
+    # Invoke CLI with the empty directory
+    result = runner.invoke(app, [str(empty_dir)])
+
+    # Should exit with error code 1
+    assert result.exit_code == 1
+    # Should display error message
+    assert "No files found" in result.output
+
+
+def test_nonexistent_configuration_file_error(
+    temp_test_file: Path, tmp_path: Path
+) -> None:
+    """Test that CLI exits with clean error when config file doesn't exist."""
+    nonexistent_config = tmp_path / "nonexistent_config.toml"
+
+    # Invoke CLI with nonexistent configuration file
+    result = runner.invoke(
+        app, [str(temp_test_file), "--configuration", str(nonexistent_config)]
+    )
+
+    # Should exit with error code 1
+    assert result.exit_code == 1
+
+    # Should display friendly error message
+    assert "not found" in result.output.lower()
+    assert str(nonexistent_config) in result.output
+
+    # Should NOT show a traceback
+    assert "Traceback" not in result.output
+    assert "Exception" not in result.output

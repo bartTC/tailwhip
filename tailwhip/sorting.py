@@ -62,7 +62,7 @@ def variant_base(classname: str) -> tuple[list[str], str]:
     return variants, base
 
 
-def is_color_utility(utility: str, all_colors: set[str]) -> bool:
+def is_color_utility(utility: str) -> bool:
     """
     Check if a utility is a color-related utility.
 
@@ -75,7 +75,6 @@ def is_color_utility(utility: str, all_colors: set[str]) -> bool:
 
     Args:
         utility: A base Tailwind CSS utility string (without variants)
-        all_colors: Set of all color names (standard + custom)
 
     Returns:
         True if the utility includes a Tailwind color name, False otherwise
@@ -104,7 +103,7 @@ def is_color_utility(utility: str, all_colors: set[str]) -> bool:
     utility_without_opacity = utility.split("/")[0]
 
     # Check for multi-part custom colors first (e.g., "secondary-500" in "border-t-secondary-500")
-    return any(color in utility_without_opacity for color in all_colors)
+    return any(color in utility_without_opacity for color in config.all_colors)
 
 
 def utility_rank(utility: str) -> int:
@@ -148,9 +147,7 @@ def utility_rank(utility: str) -> int:
     return -1  # len(configuration.GROUP_PATTERNS) + 1  # Unknown classes to the front
 
 
-def sort_key(
-    cls: str, all_colors: set[str]
-) -> tuple[tuple[tuple[int, str], ...], int, bool, str]:
+def sort_key(cls: str) -> tuple[tuple[tuple[int, str], ...], int, bool, str]:
     """
     Generate a sort key for a Tailwind CSS class.
 
@@ -164,7 +161,6 @@ def sort_key(
 
     Args:
         cls: A complete Tailwind CSS class string (with or without variants)
-        all_colors: Set of all color names (standard + custom)
 
     Returns:
         A tuple suitable for sorting
@@ -188,7 +184,7 @@ def sort_key(
     """
     variants, base = variant_base(cls)
     variant_keys = tuple((variant_rank(v), v) for v in variants)
-    is_color = is_color_utility(base, all_colors)
+    is_color = is_color_utility(base)
     return variant_keys, utility_rank(base), is_color, base
 
 
@@ -226,6 +222,5 @@ def sort_classes(class_list: list[str]) -> list[str]:
 
     """
     # Use colors from configuration (includes custom colors if configured)
-    all_colors = config.tailwind_colors | config.custom_colors
     deduped = list(dict.fromkeys(class_list))
-    return sorted(deduped, key=lambda cls: sort_key(cls, all_colors))
+    return sorted(deduped, key=lambda cls: sort_key(cls))

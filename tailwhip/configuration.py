@@ -71,9 +71,9 @@ def update_configuration(data: dict | Path) -> None:
 
 def _recompile_patterns() -> None:
     """Re-compile regular expressions pattern objects."""
-    config.tailwind_colors = set(config.tailwind_colors)
-    config.custom_colors = set(config.custom_colors)
+    config.all_colors = {*config.tailwind_colors, *config.custom_colors}
 
+    # Compile utility_groups and variant_groups into regexes
     config.UTILITY_PATTERNS = [re.compile("^" + g) for g in config.utility_groups]
     config.VARIANT_PATTERNS = [re.compile(v) for v in config.variant_groups]
 
@@ -120,6 +120,9 @@ class TailwhipConfig(dynaconf.Dynaconf):
     UTILITY_PATTERNS: list[re.Pattern]
     VARIANT_PATTERNS: list[re.Pattern]
     APPLY_PATTERNS: list[Pattern]
+
+    # Combined colors (computed from tailwind_colors + custom_colors)
+    all_colors: set[str]
 
 
 config = TailwhipConfig(

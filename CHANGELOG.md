@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- **Refactoring**: Moved `all_colors` computation to configuration module
+  - Added `all_colors` attribute to `TailwhipConfig` class
+  - Computed once during pattern recompilation instead of on every sort
+  - Simplified function signatures by removing `all_colors` parameter passing
+  - `is_color_utility()` and `sort_key()` now use `config.all_colors` directly
+
 ## [0.9.4] - 2025-11-05
 
 ### Added

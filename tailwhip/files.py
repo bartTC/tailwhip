@@ -176,10 +176,9 @@ def apply_changes(*, targets: Iterable[Path]) -> tuple[bool, int, int]:
     skipped = 0
     changed = 0
     found_any = False
-    targets_list = list(targets)
 
     with ThreadPoolExecutor() as executor:
-        futures = [executor.submit(_process_file, f) for f in targets_list]
+        futures = [executor.submit(_process_file, f) for f in targets]
 
         for future in as_completed(futures):
             found_any = True

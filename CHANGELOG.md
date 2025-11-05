@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- **Performance**: File processing now starts immediately when scanning large directories
+  - Removed eager materialization of file list in `apply_changes()`
+  - Files are now processed as they are discovered by the generator
+  - Significantly reduces startup delay for large codebases
+
 ## [0.9.3] - 2025-01-04
 
 ### Changed

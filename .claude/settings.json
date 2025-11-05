@@ -1,0 +1,42 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(python -m pytest:*)",
+      "Bash(uv pip install:*)",
+      "Bash(python:*)",
+      "WebSearch",
+      "Bash(test_configuration.py)",
+      "Bash(tailwhip/tests/test_configuration.py)",
+      "Bash(git log:*)",
+      "Bash(mkdir:*)",
+      "Bash(uv pip list:*)",
+      "Bash(ruff check:*)",
+      "Bash(.venv/bin/python -m pytest:*)",
+      "Bash(ruff format:*)"
+    ],
+    "deny": [],
+    "ask": []
+  },
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Edit",
+        "hooks": [
+          {
+            "type": "prompt",
+            "prompt": "After editing code files, follow this workflow IN ORDER:\n1. FIRST: Run tests (.venv/bin/python -m pytest) - must pass before proceeding\n2. SECOND: Run linting (ruff check && ruff format --check) - must pass before proceeding\n3. THIRD: Add changelog entry to CHANGELOG.md (unless this IS the changelog)\n\nDo not skip steps or change the order. Tool call details: $ARGUMENTS"
+          }
+        ]
+      },
+      {
+        "matcher": "Write",
+        "hooks": [
+          {
+            "type": "prompt",
+            "prompt": "After writing code files, follow this workflow IN ORDER:\n1. FIRST: Run tests (.venv/bin/python -m pytest) - must pass before proceeding\n2. SECOND: Run linting (ruff check && ruff format --check) - must pass before proceeding\n3. THIRD: Add changelog entry to CHANGELOG.md (unless this IS the changelog)\n\nDo not skip steps or change the order. Tool call details: $ARGUMENTS"
+          }
+        ]
+      }
+    ]
+  }
+}

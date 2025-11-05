@@ -32,6 +32,9 @@ dependencies = [
 [project.urls]
 Homepage = "https://github.com/bartTC/tailwhip/"
 Repository = "https://github.com/bartTC/tailwhip/"
+Documentation = "https://github.com/bartTC/tailwhip/blob/main/README.md"
+Changelog = "https://github.com/bartTC/tailwhip/blob/main/CHANGELOG.md"
+"Bug Tracker" = "https://github.com/bartTC/tailwhip/issues"
 
 [dependency-groups]
 dev = [

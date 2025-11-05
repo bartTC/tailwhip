@@ -9,6 +9,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- **Documentation**: Added additional project metadata URLs to `pyproject.toml`
+  - Added direct link to project documentation (README.md)
+  - Added direct link to changelog (CHANGELOG.md)
+  - Added direct link to bug tracker (GitHub Issues)
+
 - **Refactoring**: Moved `all_colors` computation to configuration module
   - Added `all_colors` attribute to `TailwhipConfig` class
   - Computed once during pattern recompilation instead of on every sort

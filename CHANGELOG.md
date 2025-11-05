@@ -18,6 +18,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Prevents indefinite hangs when processing files
   - `as_completed()` now uses timeout parameter in `apply_changes()`
 
+- **Documentation**: Restructured comments in configuration arrays
+  - All comments in `utility_groups` and `variant_groups` now consistently appear above their patterns
+  - Clear separation between major groups with blank lines
+  - Improved readability and maintainability of configuration structure
+
 ## [0.9.3] - 2025-01-04
 
 ### Changed

@@ -142,9 +142,11 @@ variant_separator = ":"
 #   Classes that don't match any pattern are sorted alphabetically at the front.
 
 utility_groups = [
-    # 0) Components (Tailwind "components" layer comes before utilities)
+    # 0) Components
+    # Tailwind "components" layer comes before utilities
     '(^| )(container)( |$)',
-    # 1) Layout & display
+
+    # 1) Layout & Display
     '(hidden|visible|invisible)',
     '(z)-',
     '(block|inline-block|inline|flow-root|contents)',
@@ -153,6 +155,7 @@ utility_groups = [
     '(table|inline-table)',
     '(box-border|box-content|box-decoration-(slice|clone))',
     '(isolate|isolation-auto)',
+    # Positioning
     '(static|fixed|absolute|relative|sticky)',
     '(inset)-',
     '(top)-',
@@ -160,24 +163,27 @@ utility_groups = [
     '(bottom)-',
     '(left)-',
     '(z)-',
+    # Floats and clears
     '(float|clear)-(left|right|none|start|end)',
-    # floats/clears
+    # CSS multi-column layout
     '(columns)-',
-    # CSS multi-column
+    # Page and column breaks
     '(break)-(inside|before|after)-',
-    # page/column breaks
+    # Scrolling and overflow
     '(overflow|overscroll)-',
-    # scrolling/overflow
     '(scroll|scroll-m|scroll-p|scroll-smooth)',
-    # scroll behavior & margins
     '(snap)-',
+
     # 2) Flexbox & Grid
     '(order|grow|shrink|basis)(-|$)',
     '(grid-cols|grid-rows|grid-flow|auto-cols|auto-rows)-',
     '(col-(span|start|end)|row-(span|start|end))-',
     '(gap|space-[xy])-',
-    # 3) Alignment & distribution (box alignment)
+
+    # 3) Alignment & Distribution
+    # Box alignment properties
     '(place|content|items|self|justify|align)-',
+
     # 4) Sizing
     '(size)-',
     '(w)-',
@@ -187,7 +193,9 @@ utility_groups = [
     '(min-h)-',
     '(max-h)-',
     '(aspect)-',
-    # 5) Spacing (x,y,t,r,b,l)
+
+    # 5) Spacing
+    # Margin (all directions: x, y, t, r, b, l)
     '(m)-',
     '(mx)-',
     '(my)-',
@@ -195,6 +203,7 @@ utility_groups = [
     '(mr)-',
     '(mb)-',
     '(ml)-',
+    # Padding (all directions: x, y, t, r, b, l)
     '(p)-',
     '(px)-',
     '(py)-',
@@ -202,6 +211,7 @@ utility_groups = [
     '(pr)-',
     '(pb)-',
     '(pl)-',
+
     # 6) Typography
     '(font)-',
     '(text-(balance|pretty|wrap))',
@@ -213,47 +223,57 @@ utility_groups = [
     '(placeholder)-',
     '(whitespace|break|hyphens)-',
     '(tab-size)-',
+    # Line clamp (official plugin utility)
     '(line-clamp)-',
-    # official plugin utility
+    # Single-token typography utilities
     '(antialiased|subpixel-antialiased|truncate)',
-    # single-token type utils
+    # Font variant numeric
     '(tabular-nums|slashed-zero|lining-nums|oldstyle-nums|proportional-nums|ordinal)',
-    # content-['…'] utilities
+    # Content utilities
     '(content)-',
+
     # 7) Backgrounds
-    # includes bg-clip, -origin, -repeat, -size, -position, -attachment, colors
+    # Includes bg-clip, bg-origin, bg-repeat, bg-size, bg-position, bg-attachment, and colors
     '(bg)-',
-    # gradients
+    # Gradient color stops
     '(from)-',
     '(to)-',
     '(via)-',
-    # 8) Borders & outlines & rings & divide
+
+    # 8) Borders & Outlines & Rings & Divide
     '(rounded)-',
     '(border)-',
     '(divide)-',
     '(ring)-',
     '(outline)-',
+
     # 9) Effects
     '(shadow)-',
     '(opacity)-',
     '(mix-blend)-',
     '(backdrop|filter|blur|brightness|contrast|grayscale|hue-rotate|invert|saturate|sepia|drop-shadow)-',
+
     # 10) Transforms
     '(transform|scale|rotate|translate|skew|origin)-',
-    # 11) Transitions & animation
-    '(transition|duration|ease|delay|animate)-',
-    # 12) Interactivity & misc
-    '(cursor|select|pointer-events|resize|appearance|accent|caret|touch)-',
-    '(object)-',
-    # object-fit/position
-    '(outline-none)',
-    # single token
-    '(stroke|fill)-',
-    # SVG
 
-    # 13) Accessibility helpers (kept near the end so utility groups dominate)
+    # 11) Transitions & Animation
+    '(transition|duration|ease|delay|animate)-',
+
+    # 12) Interactivity & Miscellaneous
+    '(cursor|select|pointer-events|resize|appearance|accent|caret|touch)-',
+    # Object fit and position
+    '(object)-',
+    # Single-token utilities
+    '(outline-none)',
+    # SVG utilities
+    '(stroke|fill)-',
+
+    # 13) Accessibility
+    # Screen reader utilities (kept near the end so utility groups dominate)
     '(sr-only|not-sr-only)',
-    # 14) Group/peer & attribute base selectors (as raw classes, not variants)
+
+    # 14) Group/Peer & Attribute Selectors
+    # Base selectors when used as raw classes (not variants)
     '(peer|group|aria-|data-)(:|$)',
 ]
 
@@ -291,17 +311,22 @@ variant_groups = [
     # Container queries (most specific, come first)
     '@container:',
     '@\w+:',
+
     # Direction & theme
     '(rtl|ltr):',
     'dark:',
+
     # Media-like variants
     '(portrait|landscape|print):',
     '(motion-safe|motion-reduce):',
     '(contrast-more|contrast-less):',
-    # Container & size queries (if using v4 container queries)
+
+    # Container & size queries
+    # Supports variant patterns
     '(supports-\[.*\]|supports-.*:)',
-    # supports: variant patterns
+    # Size and container query variants (if using v4 container queries)
     '(size-.*:|cq-.*:)',
+
     # Breakpoints (mobile-first)
     'min-\[.*\]:',
     'max-\[.*\]:',
@@ -310,13 +335,16 @@ variant_groups = [
     'lg:',
     'xl:',
     '2xl:',
-    # Structural/state
+
+    # Structural pseudo-classes
     '(first):',
     '(last):',
     '(only):',
     '(odd):',
     '(even):',
     '(first-of-type|last-of-type|only-of-type):',
+
+    # State pseudo-classes
     '(visited|target|open|empty):',
     '(enabled|disabled|read-only|required|optional):',
     '(checked|indeterminate|default):',
@@ -324,16 +352,25 @@ variant_groups = [
     '(in-range|out-of-range):',
     '(placeholder-shown):',
     '(autofill):',
+
+    # Interactive states
     '(focus-within):',
     '(hover|focus|focus-visible|focus-within|active):',
     '(pressed|selected):',
     '(current):',
+
+    # Attribute variants
     '(aria-.*:|data-.*:)',
-    # attribute variants
+
+    # Group variants
+    # Group compound variants (e.g., group-hover:)
     '(group(-\[.*\])?:.*:|group-.*:)',
-    # group/compound (e.g. group-hover:)
+
+    # Peer variants
+    # Peer compound variants (e.g., peer-checked:)
     '(peer(-\[.*\])?:.*:|peer-.*:)',
-    # peer/compound (e.g. peer-checked:)
+
+    # Pseudo-elements
     '(marker:|selection:|file:|placeholder:|backdrop:|first-letter:|first-line:)',
 ]
 

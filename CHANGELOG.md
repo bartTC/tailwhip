@@ -11,7 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - **Development**: Claude Code project configuration
   - Added PROJECT.md with development workflow guidelines
-  - Added slash commands: `/changelog` and `/verify`
+  - Added slash commands: `/release`, `/changelog` and `/verify`
   - Configured hooks to enforce workflow: tests → linting → changelog
   - Automated reminders after code changes to ensure quality standards
   - Shared settings in `settings.json` for all contributors

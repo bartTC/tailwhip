@@ -28,12 +28,6 @@ When you make changes to the codebase, **always** follow these steps in order:
    - If ruff format --check fails, run `ruff format` to fix formatting
    - DO NOT proceed until linting passes
 
-3. **Add a changelog entry** to `CHANGELOG.md` in the `[Unreleased]` section
-   - Use the existing format with categories: Added, Changed, Fixed, Removed
-   - Include a bold category label (e.g., **Performance**, **Documentation**, **Reliability**)
-   - Be specific about what changed and why
-   - Only add changelog entry after tests and linting pass
-
 ### Changelog Guidelines
 
 - **Always update CHANGELOG.md** after making code changes

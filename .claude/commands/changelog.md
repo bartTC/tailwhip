@@ -11,7 +11,7 @@ IMPORTANT: Before adding a changelog entry, ensure:
 If tests or linting have not been run yet, run them first and ensure they pass.
 
 Then add the changelog entry:
-1. Review the git diff to understand what changed
+1. Review the unstaged git changes to understand what changed
 2. Add an appropriate entry to the [Unreleased] section
 3. Follow the Keep a Changelog format
 4. Use the correct category (Added, Changed, Fixed, Removed, etc.)

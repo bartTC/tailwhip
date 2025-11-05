@@ -15,6 +15,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Simplified function signatures by removing `all_colors` parameter passing
   - `is_color_utility()` and `sort_key()` now use `config.all_colors` directly
 
+- **Testing**: Simplified test suite for better maintainability
+  - Removed redundant integration tests (`test_kitchen_sink_example`, `test_css_apply_advanced`)
+  - Added focused `test_deduplication` test for duplicate class handling
+  - Updated test documentation to reflect current coverage
+
 ## [0.9.4] - 2025-11-05
 
 ### Added

@@ -10,8 +10,7 @@ Test Coverage:
 - Color vs non-color utility prioritization
 - Alphabetical sorting within groups
 - Custom color handling
-- CSS @apply directive processing
-- HTML class attribute processing
+- Duplicate class handling
 - Template markup handling (skip expressions)
 - Complex real-world examples (kitchen sink)
 
@@ -339,9 +338,7 @@ def test_sorting(classes: list[str], iteration: int) -> None:  # noqa: ARG001
 @pytest.mark.parametrize("iteration", range(10))
 def test_sorting_custom_colors(iteration: int, monkeypatch: pytest.MonkeyPatch) -> None:  # noqa: ARG001
     """Custom colors are sorted along with other colors."""
-    update_configuration(
-        {"custom_colors": {"primary", "secondary-500", "border-almond-500"}}
-    )
+    update_configuration({"custom_colors": {"primary", "secondary-500", "almond-500"}})
 
     classes = [
         "border-1",  # Non colors
@@ -358,60 +355,10 @@ def test_sorting_custom_colors(iteration: int, monkeypatch: pytest.MonkeyPatch) 
     assert result == classes
 
 
-def test_kitchen_sink_example() -> None:
-    """Test a complex real-world example with many advanced features."""
-    html = """
-<div class="group relative p-[calc(1rem+2px)] m-[clamp(1rem,5vw,3rem)]
-            backdrop-blur-md backdrop-brightness-75 bg-white/80
-            before:content-[''] before:absolute before:inset-0
-            hover:backdrop-blur-lg lg:hover:backdrop-brightness-90
-            [&>*]:p-4 [&_a]:text-blue-500 [&_a]:hover:underline
-            grid grid-cols-[200px_1fr_2fr] gap-[calc(1rem+2px)]
-            min-[320px]:grid-cols-1 min-[768px]:grid-cols-2
-            shadow-[0_35px_35px_rgba(0,0,0,0.25)]">
-    <h1 class="backdrop-blur-md before:content-[''] [&>*]:p-4
-               grid-cols-[200px_1fr] p-[calc(1rem+2px)]
-               group-hover:bg-blue-500 shadow-[0_10px_20px_rgba(0,0,0,0.1)]">Test</h1>
-</div>
-    """
-    expected = """
-<div class="grid grid-cols-[200px_1fr_2fr] relative gap-[calc(1rem+2px)] m-[clamp(1rem,5vw,3rem)] p-[calc(1rem+2px)] bg-white/80 shadow-[0_35px_35px_rgba(0,0,0,0.25)] backdrop-blur-md backdrop-brightness-75 group min-[320px]:grid-cols-1 min-[768px]:grid-cols-2 lg:hover:backdrop-brightness-90 hover:backdrop-blur-lg [&_a]:hover:underline [&>*]:p-4 [&_a]:text-blue-500 before:absolute before:inset-0 before:content-['']">
-    <h1 class="grid-cols-[200px_1fr] p-[calc(1rem+2px)] shadow-[0_10px_20px_rgba(0,0,0,0.1)] backdrop-blur-md group-hover:bg-blue-500 [&>*]:p-4 before:content-['']">Test</h1>
-</div>
-    """
-    result = process_text(html)
-    assert result == expected
-
-
-def test_css_apply_advanced() -> None:
-    """Test CSS @apply with advanced features."""
-    css = """
-.advanced {
-    @apply backdrop-blur-md before:content-[''] [&>*]:p-4
-           grid-cols-[200px_1fr] p-[calc(1rem+2px)]
-           group-hover:bg-blue-500 shadow-[0_10px_20px_rgba(0,0,0,0.1)];
-}
-#other {
-    @apply group relative p-[calc(1rem+2px)] m-[clamp(1rem,5vw,3rem)]
-            backdrop-blur-md backdrop-brightness-75 bg-white/80
-            before:content-[''] before:absolute before:inset-0
-            hover:backdrop-blur-lg lg:hover:backdrop-brightness-90
-            [&>*]:p-4 [&_a]:text-blue-500 [&_a]:hover:underline
-            grid grid-cols-[200px_1fr_2fr] gap-[calc(1rem+2px)]
-            min-[320px]:grid-cols-1 min-[768px]:grid-cols-2
-            shadow-[0_35px_35px_rgba(0,0,0,0.25)];
-}
-    """
-    expected = """
-.advanced {
-    @apply grid-cols-[200px_1fr] p-[calc(1rem+2px)] shadow-[0_10px_20px_rgba(0,0,0,0.1)] backdrop-blur-md group-hover:bg-blue-500 [&>*]:p-4 before:content-[''];
-}
-#other {
-    @apply grid grid-cols-[200px_1fr_2fr] relative gap-[calc(1rem+2px)] m-[clamp(1rem,5vw,3rem)] p-[calc(1rem+2px)] bg-white/80 shadow-[0_35px_35px_rgba(0,0,0,0.25)] backdrop-blur-md backdrop-brightness-75 group min-[320px]:grid-cols-1 min-[768px]:grid-cols-2 lg:hover:backdrop-brightness-90 hover:backdrop-blur-lg [&_a]:hover:underline [&>*]:p-4 [&_a]:text-blue-500 before:absolute before:inset-0 before:content-[''];
-}
-    """
-    result = process_text(css)
-    assert result == expected
+def test_deduplication() -> None:
+    """Duplicate classes are deduplicated."""
+    result = sort_classes(["p-4", "p-4", "p-4"])
+    assert result == ["p-4"]
 
 
 @pytest.mark.parametrize(

@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.9.4] - 2025-11-05
+
 ### Added
 
 - **Development**: Claude Code project configuration
@@ -241,7 +243,9 @@ The initial alpha releases established the core functionality of Tailwhip.
 - **0.9a2** - Bug fixes, improved error handling, and type hint improvements
 - **0.9a3** - Enhanced template syntax handling and documentation updates
 
-[Unreleased]: https://github.com/bartTC/tailwhip/compare/v0.9.2...HEAD
+[Unreleased]: https://github.com/bartTC/tailwhip/compare/v0.9.4...HEAD
+[0.9.4]: https://github.com/bartTC/tailwhip/compare/v0.9.3...v0.9.4
+[0.9.3]: https://github.com/bartTC/tailwhip/compare/v0.9.2...v0.9.3
 [0.9.2]: https://github.com/bartTC/tailwhip/compare/v0.9.1...v0.9.2
 [0.9.1]: https://github.com/bartTC/tailwhip/compare/v0.9...v0.9.1
 [0.9]: https://github.com/bartTC/tailwhip/compare/v0.9b0...v0.9

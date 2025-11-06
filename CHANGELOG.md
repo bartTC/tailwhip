@@ -7,7 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-## [0.10.0] - 2025-01-06
+## [0.10.0] - 2025-11-06
 
 ### Added
 
@@ -21,11 +21,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 - **Documentation**: Added additional project metadata URLs to `pyproject.toml`
+
   - Added direct link to project documentation (README.md)
   - Added direct link to changelog (CHANGELOG.md)
   - Added direct link to bug tracker (GitHub Issues)
 
 - **Refactoring**: Moved `all_colors` computation to configuration module
+
   - Added `all_colors` attribute to `TailwhipConfig` class
   - Computed once during pattern recompilation instead of on every sort
   - Simplified function signatures by removing `all_colors` parameter passing
@@ -51,11 +53,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 - **Performance**: File processing now starts immediately when scanning large directories
+
   - Removed eager materialization of file list in `apply_changes()`
   - Files are now processed as they are discovered by the generator
   - Significantly reduces startup delay for large codebases
 
 - **Reliability**: Added 60-second timeout to file processing
+
   - Prevents indefinite hangs when processing files
   - `as_completed()` now uses timeout parameter in `apply_changes()`
 
@@ -102,6 +106,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - **CI/CD**: GitHub Actions workflow for linting
+
   - Runs ruff check to verify code quality
   - Runs ruff format check to ensure consistent code formatting
   - Added ruff to dev dependencies
@@ -118,6 +123,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 - **Configuration**: Updated `example.tailwhip.toml` with comprehensive documentation
+
   - Aligned structure and descriptions with main `configuration.toml`
   - Added clearer usage examples for common customization scenarios
   - Improved comments and organization for better user guidance
@@ -139,17 +145,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - **CI/CD**: GitHub Actions workflow for automated testing
+
   - Python matrix testing across versions 3.11, 3.12, 3.13, and 3.14
   - Runs on push and pull requests to main branch
   - Uses uv for fast dependency management
 
 - **Documentation Enhancements**
+
   - CI/CD status badge in README
   - Python version support badge
   - MIT license badge
   - Direct link to CHANGELOG.md from README
 
 - **Testing Infrastructure**
+
   - Comprehensive tests for file writing functionality
   - Edge case coverage for file operations
   - Coverage configuration with proper exclusions
@@ -177,12 +186,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - **Configuration System**: Complete configuration management with Dynaconf
+
   - Support for `pyproject.toml` via `[tool.tailwhip]` section
   - Support for custom configuration files via `--configuration` flag
   - Clear configuration precedence: defaults < pyproject.toml < custom config < CLI arguments
   - Comprehensive configuration documentation in `configuration.toml` with examples and recommendations
 
 - **Configuration Options**: New customizable settings
+
   - `verbosity`: Control output detail level (0-3)
   - `write_mode`: Safe dry-run mode by default
   - `default_globs`: Customize file patterns to process
@@ -191,11 +202,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - `utility_groups` and `variant_groups`: Fine-tune sorting behavior (advanced)
 
 - **CLI Enhancements**
+
   - `--configuration` / `-c` flag to specify custom config file
   - Improved help text and error messages
   - Configuration validation and error handling
 
 - **Testing Infrastructure**
+
   - Comprehensive CLI and configuration precedence tests
   - Dynamic test fixtures using temporary directories (no stub files in repo)
   - Module docstrings for all test files
@@ -210,6 +223,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 - **Configuration Architecture**: Migrated from simple constants to Dynaconf-based system
+
   - Centralized configuration in `configuration.py`
   - Dynamic recompilation of regex patterns on config updates
   - Type-safe configuration with `TailwhipConfig` class
@@ -242,20 +256,24 @@ The initial alpha releases established the core functionality of Tailwhip.
 ### Features
 
 - **Tailwind Class Sorting**: Core sorting algorithm based on official Tailwind CSS class ordering
+
   - Utility class grouping (layout, spacing, typography, visual effects, etc.)
   - Variant sorting (responsive breakpoints, pseudo-classes, state modifiers)
   - Alphabetical sorting within groups
 
 - **Template Engine Support**: Automatic detection and skipping of template syntax
+
   - Support for Django, Jinja2, Liquid, ERB, and other templating languages
   - Classes with template expressions (`{{ }}`, `{% %}`, `<% %>`) are left unchanged
 
 - **File Processing**: Batch processing with multiple file types
+
   - HTML and CSS file support
   - `@apply` directive sorting in CSS
   - Glob pattern support for file discovery
 
 - **CLI Interface**: Command-line tool with essential options
+
   - Dry-run mode by default (safe preview of changes)
   - `--write` flag to apply changes
   - Verbosity controls (`-v`, `-vv`, `-vvv`)

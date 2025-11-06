@@ -56,6 +56,13 @@ $ uvx tailwhip "templates/**/*.scss"
 
 # Standard glob patterns are supported
 $ uvx tailwhip "static/**/*.{css,scss}" "templates/**/*.htm[l]"
+
+# Use as a stdin/stdout filter (great for editor integrations!)
+$ echo '<div class="p-4 m-2 bg-white">' | uvx tailwhip
+<div class="m-2 p-4 bg-white">
+
+# Pipe file content through tailwhip
+$ cat template.html | tailwhip > sorted.html
 ```
 
 You can also install it with pip and use it as a Python library:
@@ -69,9 +76,42 @@ $ python -m tailwhip templates/
 
 See `--help` for all options and features.
 
+## Editor Integration
+
+Tailwhip works as a STDIN/STDOUT filter, making it easy to integrate with text editors:
+
+**Shell:**
+
+```bash
+$ tailwhip < file.html
+$ cat file.html | tailwhip > file.html
+``````
+
+**Vim/Neovim:**
+```vim
+" Sort classes in current file
+:%!tailwhip
+
+" Sort classes in visual selection
+:'<,'>!tailwhip
+```
+
+**Emacs:**
+```elisp
+;; Sort classes in region
+(shell-command-on-region (region-beginning) (region-end) "tailwhip" t t)
+```
+
+**VSCode:**
+Configure as an external formatter or create a task that pipes selected text through `tailwhip`.
+
+The stdin mode processes text and returns the result immediately, with no file I/O 
+or configuration needed.
+
 ## Configuration
 
-Tailwhip works great out of the box with sensible defaults, but you can customize its behavior to match your project's needs. There are two ways to configure Tailwhip:
+Tailwhip works great out of the box with sensible defaults, but you can customize 
+its behavior to match your project's needs. There are two ways to configure Tailwhip:
 
 ### Option 1: `pyproject.toml`
 
@@ -99,7 +139,8 @@ skip_expressions = ["{{", "{%", "<%", "[[", "]]"]
 
 ### Option 2: Custom Configuration File
 
-Create a `tailwhip.toml` file anywhere in your project and pass it via the `--configuration` flag:
+Create a `tailwhip.toml` file anywhere in your project and pass it via the 
+`--configuration` flag:
 
 ```toml
 # tailwhip.toml
@@ -131,11 +172,13 @@ Settings are loaded in this order (later sources override earlier ones):
 3. **Custom config file** (via `--configuration` flag)
 4. **CLI arguments** (e.g., `--write`, `-v`, `--quiet`)
 
-CLI arguments always take precedence, so you can override any config value on the command line.
+CLI arguments always take precedence, so you can override any config value on the 
+command line.
 
 ### Available Configuration Options
 
-For a complete list of all configuration options with detailed explanations, see the [default configuration file](https://github.com/bartTC/tailwhip/blob/main/tailwhip/configuration.toml). It includes:
+For a complete list of all configuration options with detailed explanations, see the 
+[default configuration file](https://github.com/bartTC/tailwhip/blob/main/tailwhip/configuration.toml). It includes:
 
 - **Output settings**: `verbosity`, `write_mode`
 - **File discovery**: `default_globs`
@@ -144,18 +187,24 @@ For a complete list of all configuration options with detailed explanations, see
 - **Color recognition**: `tailwind_colors`, `custom_colors`
 - **Pattern matching**: `class_patterns` (advanced)
 
-Most users only need to customize `custom_colors` and occasionally `default_globs` or `skip_expressions`. The sorting algorithm is based on Tailwind best practices and rarely needs modification.
+Most users only need to customize `custom_colors` and occasionally `default_globs` 
+or `skip_expressions`. The sorting algorithm is based on Tailwind best practices and 
+rarely needs modification.
 
 ### Advanced: Custom Pattern Matching
 
-Tailwhip uses configurable patterns to find and sort class attributes across different syntaxes. By default, it supports:
+Tailwhip uses configurable patterns to find and sort class attributes across 
+different syntaxes. By default, it supports:
 
 - HTML `class="..."` attributes
 - CSS `@apply ...;` directives
 
-You can add custom patterns for other frameworks (JSX, Vue, Svelte, etc.) by configuring `class_patterns` in your `pyproject.toml` or custom config file.
+You can add custom patterns for other frameworks (JSX, Vue, Svelte, etc.) by 
+configuring `class_patterns` in your `pyproject.toml` or custom config file.
 
-**Important:** Custom `class_patterns` **replace** (not extend) the defaults, just like any other configuration setting. You must include the default HTML and CSS patterns if you want to keep them:
+**Important:** Custom `class_patterns` **replace** (not extend) the defaults, just
+like any other configuration setting. You must include the default HTML and CSS 
+patterns if you want to keep them:
 
 ```toml
 # Example: Add JSX className support while keeping HTML class and CSS @apply

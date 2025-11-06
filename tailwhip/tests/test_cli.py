@@ -78,7 +78,7 @@ skip_expressions = ["<%", "%>"]
 @pytest.mark.parametrize(
     ("args", "expected_exit_code"),
     [
-        ([], 2),  # No arguments - should exit with code 2
+        ([], 0),  # No arguments - reads from stdin (which is empty in test runner)
         (["-h"], 0),  # Help flag - should succeed
         (["--help"], 0),  # Help flag (long form) - should succeed
         (["--version"], 0),  # Version (long form) - should succeed

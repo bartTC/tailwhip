@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- **Editor Integration**: STDIN/STDOUT filter mode for text editor integrations
+  - Tailwhip now reads from stdin and writes to stdout when no file paths are provided
+  - Enables direct integration with Vim/Neovim (`:%!tailwhip`), Emacs, VSCode, and other editors
+  - No configuration or file I/O needed - just pipe text through tailwhip
+  - Added comprehensive test suite in `test_stdin.py` with 4 test cases
+  - Updated documentation with editor integration examples for Vim, VSCode, and Emacs
+
 ### Changed
 
 - **Documentation**: Added additional project metadata URLs to `pyproject.toml`

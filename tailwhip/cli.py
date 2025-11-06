@@ -19,6 +19,7 @@ from tailwhip.configuration import (
     update_configuration,
 )
 from tailwhip.files import apply_changes, find_files
+from tailwhip.process import process_text
 
 
 def version_callback(value: bool) -> None:
@@ -44,12 +45,12 @@ def main() -> None:
 @app.command(context_settings={"help_option_names": ["-h", "--help"]})
 def run(  # noqa: PLR0913
     paths: Annotated[
-        list[Path],
+        list[Path] | None,
         typer.Argument(
-            help="Files or directories to process.",
+            help="Files or directories to process. Omit to read from stdin.",
             metavar="PATH",
         ),
-    ],
+    ] = None,
     version: Annotated[  # noqa: ARG001
         bool,
         typer.Option(
@@ -131,7 +132,23 @@ def run(  # noqa: PLR0913
 
     config.console = Console(quiet=quiet, theme=CONSOLE_THEME)
 
-    # Start Tailwhipping ---------------------------------------------------------------
+    # Handle stdin mode ----------------------------------------------------------------
+
+    if not paths:
+        # Check if stdin is being piped (not a TTY)
+        if not sys.stdin.isatty():
+            input_text = sys.stdin.read()
+            output_text = process_text(input_text)
+            sys.stdout.write(output_text)
+            return
+
+        # No paths and no piped input
+        config.console.print(
+            "[red]Error: No paths provided. Provide file paths or pipe content to stdin.[/red]"
+        )
+        sys.exit(1)
+
+    # Handle File Mode -----------------------------------------------------------------
 
     start_time = time.time()
     found_any, skipped, changed = apply_changes(targets=find_files(paths=paths))

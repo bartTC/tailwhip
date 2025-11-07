@@ -238,3 +238,26 @@ def test_nonexistent_configuration_file_error(
     # Should NOT show a traceback
     assert "Traceback" not in result.output
     assert "Exception" not in result.output
+
+
+# Run tailwhip with no pyproject.toml in reach
+def test_no_pyproject_toml_error(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """
+    Test that CLI exits with clean error when no pyproject.toml is found.
+
+    This is a regression test. Tailwhip failed if there was no pyproject.toml
+    in the current directory or any parent directories.
+    """
+    # Create a deeply nested temporary directory to ensure we're far from any real pyproject.toml
+    isolated_dir = tmp_path / "deep" / "nested" / "directory"
+    isolated_dir.mkdir(parents=True)
+    monkeypatch.chdir(isolated_dir)
+
+    result = runner.invoke(app)
+    assert result.exit_code == 0
+
+    # Should NOT show a traceback
+    assert "Traceback" not in result.output
+    assert "Exception" not in result.output

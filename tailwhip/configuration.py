@@ -44,6 +44,9 @@ def get_pyproject_toml_data(start_path: Path) -> Path | None:
             pyproject_path = candidate
             break
 
+    if pyproject_path is None:
+        return None
+
     with pyproject_path.open("rb") as f:
         data = tomllib.load(f)
 

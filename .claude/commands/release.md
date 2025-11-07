@@ -31,6 +31,7 @@ Use the AskUserQuestion tool to present options:
 ### 5. Update CHANGELOG.md
 - Move the `[Unreleased]` section to a new version section with today's date
 - Format: `## [X.Y.Z] - YYYY-MM-DD`
+- Ask the user to verify that the date is correct.
 - Keep the structure (Added, Changed, Fixed, etc.)
 - Add a new empty `[Unreleased]` section at the top
 - Update the version comparison links at the bottom:

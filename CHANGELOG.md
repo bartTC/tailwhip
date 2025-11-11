@@ -9,6 +9,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- **Documentation**: Added usage examples to CLI help text
+  - Examples demonstrate common workflows: single files, multiple files, directories
+  - Shows write mode, verbose diff preview, and stdin/stdout usage
+  - Improves discoverability of key features for new users
+
 - **Testing**: Added test coverage for stdin behavior when no input is provided
   - New test `test_no_stdin_and_no_files` verifies proper error handling
   - Ensures clean exit with appropriate error message (no traceback)

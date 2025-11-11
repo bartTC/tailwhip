@@ -101,6 +101,27 @@ def run(  # noqa: PLR0913
 
     Automatically discovers and sorts Tailwind classes according to a consistent
     ordering. Supports HTML, CSS, and template files with Tailwind @apply directives.
+
+    [bold]Examples:[/bold]
+
+      # Check a single file (dry-run by default)
+      tailwhip index.html
+
+      # Sort classes in multiple files
+      tailwhip file1.html file2.html styles.css
+
+      # Process all HTML and CSS files in a directory
+      tailwhip src/templates/
+
+      # Actually write changes to files
+      tailwhip src/ --write
+
+      # Preview detailed diff before writing
+      tailwhip index.html -vv
+
+      # Read from stdin and output to stdout
+      echo '<div class="mt-4 p-2 bg-blue-500"></div>' | tailwhip
+
     """
     # Check if the given configuration file exists
     if custom_configuration_file and not custom_configuration_file.exists():

@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- **Testing**: Added test coverage for stdin behavior when no input is provided
+  - New test `test_no_stdin_and_no_files` verifies proper error handling
+  - Ensures clean exit with appropriate error message (no traceback)
+
 ## [0.10.1] - 2025-11-07
 
 ### Fixed

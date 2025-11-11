@@ -19,12 +19,14 @@ Configuration Priority (lowest to highest):
 
 from __future__ import annotations
 
+import io
+import sys
 from typing import TYPE_CHECKING
 
 import pytest
 from typer.testing import CliRunner
 
-from tailwhip.cli import app
+from tailwhip.cli import app, run
 from tailwhip.configuration import BASE_CONFIGURATION_FILE, config, update_configuration
 
 if TYPE_CHECKING:
@@ -261,3 +263,38 @@ def test_no_pyproject_toml_error(
     # Should NOT show a traceback
     assert "Traceback" not in result.output
     assert "Exception" not in result.output
+
+
+# Run tailwhip with no pyproject.toml in reach
+def test_no_stdin_and_no_files(
+    monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture
+) -> None:
+    """
+    Test behavior of the application when no stdin input and no file paths are provided.
+
+    This function ensures that when there is no content piped to stdin and no file
+    paths are provided, the script exits with an appropriate error message and code,
+    without showing any traceback or exception details.
+    """
+    # Create a mock stdin that reports as TTY (not piped)
+    mock_stdin = io.StringIO("")
+    mock_stdin.isatty = lambda: True
+    monkeypatch.setattr(sys, "stdin", mock_stdin)
+
+    # Call the run function directly and expect SystemExit
+    with pytest.raises(SystemExit) as exc_info:
+        run()
+
+    # Capture the output
+    captured = capsys.readouterr()
+
+    # Should exit with code 1
+    assert exc_info.value.code == 1
+    assert (
+        "Error: No paths provided. Provide file paths or pipe content to stdin."
+        in captured.out
+    )
+
+    # Should NOT show a traceback
+    assert "Traceback" not in captured.out
+    assert "Exception" not in captured.out

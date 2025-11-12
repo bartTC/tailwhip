@@ -1,0 +1,7 @@
+- id: tailwhip
+  name: tailwhip
+  description: Sort Tailwind CSS classes in HTML and CSS files
+  entry: tailwhip --write
+  language: python
+  types: [text]
+  files: \.(html|htm|css)$

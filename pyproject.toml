@@ -38,6 +38,7 @@ Changelog = "https://github.com/bartTC/tailwhip/blob/main/CHANGELOG.md"
 
 [dependency-groups]
 dev = [
+    "pre-commit",
     "pytest",
     "pytest-cov",
     "ruff",

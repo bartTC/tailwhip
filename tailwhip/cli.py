@@ -179,18 +179,14 @@ def run(  # noqa: PLR0913
         config.console.print("[red]Error: No files found[/red]")
         sys.exit(1)
 
-    if config.verbosity == VerbosityLevel.NORMAL:
-        config.console.print(
-            "\nUse [important] -v [/important] (show unchanged files) or [important] -vv [/important] (show diff preview) for more detail."
-        )
+    if config.verbosity >= VerbosityLevel.VERBOSE:
+        if not config.write_mode:
+            config.console.print(
+                "\n:warning: Dry Run. No files were actually written. "
+                "Use [important] --write [/important] to write changes."
+            )
 
-    if not config.write_mode:
         config.console.print(
-            "\n:warning: Dry Run. No files were actually written. "
-            "Use [important] --write [/important] to write changes."
+            f"⏱ Completed in [bold]{duration:.3f}s[/bold] for {changed} files. [dim]({skipped} skipped)[/dim]",
+            highlight=False,
         )
-
-    config.console.print(
-        f"⏱ Completed in [bold]{duration:.3f}s[/bold] for {changed} files. [dim]({skipped} skipped)[/dim]",
-        highlight=False,
-    )

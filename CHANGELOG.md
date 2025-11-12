@@ -18,6 +18,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- **CLI Output**: Simplified output messaging for better usability
+  - Removed verbose flag hints from normal output (cluttered default experience)
+  - Moved dry run warning and completion message to verbose mode only
+  - Cleaner default output focuses on essential information
+
 - **Documentation**: Added usage examples to CLI help text
   - Examples demonstrate common workflows: single files, multiple files, directories
   - Shows write mode, verbose diff preview, and stdin/stdout usage

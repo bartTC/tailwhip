@@ -112,34 +112,15 @@ or configuration needed.
 
 Tailwhip can automatically sort your Tailwind classes before every commit using [pre-commit](https://pre-commit.com/).
 
-### Setup
-
-1. Install pre-commit:
-   ```bash
-   $ pip install pre-commit
-   # or
-   $ uvx pre-commit
-   ```
-
-2. Add a `.pre-commit-config.yaml` file to your project:
+Add a `.pre-commit-config.yaml` file to your project:
    ```yaml
    repos:
      - repo: https://github.com/bartTC/tailwhip
-       rev: v0.10.1  # Use the latest release tag
+       rev: v0.11  # Use the latest release tag
        hooks:
          - id: tailwhip
    ```
 
-3. Install the git hook:
-   ```bash
-   $ pre-commit install
-   ```
-
-Now Tailwhip will automatically sort Tailwind classes in your HTML and CSS files before each commit. You can also run it manually on all files:
-
-```bash
-$ pre-commit run --all-files
-```
 
 ### Customizing File Types
 
@@ -148,7 +129,7 @@ To include additional file types (like JSX, TSX, or template files), add a `file
 ```yaml
 repos:
   - repo: https://github.com/bartTC/tailwhip
-    rev: v0.10.1
+    rev: v0.11
     hooks:
       - id: tailwhip
         files: \.(html|htm|css|jsx|tsx|liquid)$

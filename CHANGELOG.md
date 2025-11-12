@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- **Pre-commit Integration**: Git pre-commit hook support for automatic class sorting
+  - Added `.pre-commit-hooks.yaml` for seamless pre-commit integration
+  - Users can reference tailwhip directly: `repo: https://github.com/bartTC/tailwhip`
+  - Automatically sorts Tailwind classes in HTML and CSS files before each commit
+  - Documentation includes setup instructions and customization examples
+  - Added `pre-commit` to dev dependencies
+
 ### Changed
 
 - **Documentation**: Added usage examples to CLI help text

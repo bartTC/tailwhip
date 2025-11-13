@@ -113,14 +113,14 @@ or configuration needed.
 Tailwhip can automatically sort your Tailwind classes before every commit using [pre-commit](https://pre-commit.com/).
 
 Add a `.pre-commit-config.yaml` file to your project:
-   ```yaml
-   repos:
-     - repo: https://github.com/bartTC/tailwhip
-       rev: v0.11  # Use the latest release tag
-       hooks:
-         - id: tailwhip
-   ```
 
+```yaml
+repos:
+ - repo: https://github.com/bartTC/tailwhip
+   rev: v0.11  # Use the latest release tag
+   hooks:
+     - id: tailwhip
+```
 
 ### Customizing File Types
 

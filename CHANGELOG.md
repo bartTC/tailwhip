@@ -7,6 +7,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- **CI/CD**: GitHub Actions workflow for automated documentation deployment
+  - Added `.github/workflows/deploy-docs.yml` for generating and deploying documentation
+  - Uses Microdocs to convert README.md and CHANGELOG.md into HTML documentation site
+  - Automatically deploys to GitHub Pages on push to main branch
+  - Includes comprehensive inline documentation explaining each workflow step
+  - Manual workflow dispatch option available from Actions tab
+
+### Changed
+
+- **Documentation**: Updated documentation URL in `pyproject.toml` to point to GitHub Pages
+  - Changed from GitHub README link to `https://barttc.github.io/tailwhip/`
+  - Provides users with a dedicated documentation site instead of raw markdown
+
 ## [0.11.0] - 2025-11-12
 
 ### Added

@@ -1,100 +1,38 @@
 ---
-name: Deploy Documentation to GitHub Pages
-
-# This workflow demonstrates how to use Microdocs to generate documentation
-# and deploy it to GitHub Pages. It runs automatically on pushes to main,
-# or can be triggered manually.
-#
-# IMPORTANT: Before using this workflow, you MUST enable GitHub Pages:
-#
-# 1. Go to your repository Settings
-# 2. Navigate to Pages
-# 3. Under "Source", select "GitHub Actions"
-#
-# This is a complete example showing:
-#
-# - How to install and run Microdocs with uvx (no installation required)
-# - How to convert multiple Markdown files into a single HTML documentation site
-# - How to deploy the generated documentation to GitHub Pages
+name: Deploy Documentation
 
 "on":
-  # Trigger on push to main branch
   push:
-    branches:
-      - main
-
-  # Allow manual workflow dispatch from the Actions tab
+    branches: [main]
+  pull_request:
+    branches: [main]
   workflow_dispatch:
 
-# Required permissions for deploying to GitHub Pages
 permissions:
   contents: read
   pages: write
   id-token: write
 
-# Ensure only one deployment runs at a time
 concurrency:
   group: "pages"
   cancel-in-progress: false
 
 jobs:
-  build-and-deploy:
-    name: Build and Deploy Documentation
+  deploy:
     runs-on: ubuntu-latest
-
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
     steps:
-      # Step 1: Check out the repository code
-      # This makes your repository files available to the workflow
-      - name: Checkout repository
+      - name: Checkout
         uses: actions/checkout@v5
 
-      # Step 2: Install uv package manager
-      # uv is a fast Python package installer that can run packages with uvx
-      # without needing to install them first
-      - name: Install uv
-        uses: astral-sh/setup-uv@v7
+      - name: Build and deploy documentation
+        uses: bartTC/microdocs@main
         with:
-          enable-cache: true
-
-      # Step 3: Generate documentation with Microdocs
-      # This command converts README.md and CHANGELOG.md into a single
-      # HTML documentation site (index.html)
-      #
-      # How it works:
-      # - uvx runs microdocs without installing it globally
-      # - README.md and CHANGELOG.md are converted to HTML sections
-      # - The output is written to docs/index.html (in a dedicated directory)
-      # - --repo-url adds a link to the repository in the header
-      #
-      # You can customize this command:
-      # - Add more markdown files as arguments
-      # - Use --title "Your Title" to set a custom title
-      # - Use --template path/to/template.html for custom styling
-      - name: Build documentation with Microdocs
-        run: |
-          mkdir -p docs
-          uvx microdocs@latest README.md CHANGELOG.md \
-            -o docs/index.html \
-            --title="Tailwhip" \
-            --repo-url https://github.com/${{ github.repository }}
-
-      # Step 4: Configure GitHub Pages
-      # This tells GitHub Pages what settings to use for deployment
-      - name: Setup Pages
-        uses: actions/configure-pages@v5
-
-      # Step 5: Upload the generated documentation
-      # This packages ONLY the docs directory for deployment to GitHub Pages
-      # By using a dedicated directory, we avoid uploading the entire repository
-      - name: Upload Pages artifact
-        uses: actions/upload-pages-artifact@v4
-        with:
-          path: 'docs'
-
-      # Step 6: Deploy to GitHub Pages
-      # This publishes the uploaded artifact to your GitHub Pages site
-      # Your documentation will be available at:
-      # https://<username>.github.io/<repository>/
-      - name: Deploy to GitHub Pages
-        id: deployment
-        uses: actions/deploy-pages@v4
+          files: |
+            README.md
+            CHANGELOG.md
+          title: 'Tailwhip'
+          output: 'docs/index.html'
+          repo-url: 'https://github.com/${{ github.repository }}'

@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.12.0] - 2025-11-23
+
 ### Added
 
 - **Configuration**: Added "?" to default `skip_expressions` for JavaScript ternary operator support
@@ -343,7 +345,8 @@ The initial alpha releases established the core functionality of Tailwhip.
 - **0.9a2** - Bug fixes, improved error handling, and type hint improvements
 - **0.9a3** - Enhanced template syntax handling and documentation updates
 
-[Unreleased]: https://github.com/bartTC/tailwhip/compare/v0.11.0...HEAD
+[Unreleased]: https://github.com/bartTC/tailwhip/compare/v0.12.0...HEAD
+[0.12.0]: https://github.com/bartTC/tailwhip/compare/v0.11.0...v0.12.0
 [0.11.0]: https://github.com/bartTC/tailwhip/compare/v0.10.1...v0.11.0
 [0.10.1]: https://github.com/bartTC/tailwhip/compare/v0.10.0...v0.10.1
 [0.10.0]: https://github.com/bartTC/tailwhip/compare/v0.9.4...v0.10.0

@@ -61,6 +61,7 @@ skip_expressions = [
     "{{",  # Django, Jinja2, Liquid, Handlebars
     "{%",  # Django, Jinja2, Liquid
     "<%",  # ERB, EJS
+    "?",   # JS ternary operator (e.g., condition ? a : b)
     "[[",  # Custom delimiter example
     "]]",  # Custom delimiter example
     # "<?",  # PHP

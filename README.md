@@ -161,7 +161,7 @@ default_globs = [
 custom_colors = ["brand", "accent", "company"]
 
 # Add template syntax for your templating engine
-skip_expressions = ["{{", "{%", "<%", "[[", "]]"]
+skip_expressions = ["{{", "{%", "<%", "?", "[[", "]]"]
 ```
 
 ### Option 2: Custom Configuration File
@@ -181,7 +181,7 @@ default_globs = [
 
 custom_colors = ["primary", "secondary", "accent"]
 
-skip_expressions = ["{{", "{%", "<%", "{-"]  # Add Nunjucks syntax
+skip_expressions = ["{{", "{%", "<%", "?", "{-"]  # Add Nunjucks syntax
 ```
 
 Then use it with:

@@ -102,7 +102,7 @@ def test_config_default_values(temp_test_file: Path) -> None:
     assert config.verbosity == 1
     assert config.write_mode is False
     assert config.default_globs == ["**/*.html", "**/*.css"]
-    assert config.skip_expressions == ["{{", "{%", "<%"]
+    assert config.skip_expressions == ["{{", "{%", "<%", "?"]
 
 
 def test_config_pyproject_overrides_defaults(

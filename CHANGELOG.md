@@ -9,6 +9,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **Configuration**: Added "?" to default `skip_expressions` for JavaScript ternary operator support
+  - Prevents sorting of class attributes containing ternary expressions (e.g., `condition ? "class-a" : "class-b"`)
+  - Updated documentation in README.md, example.tailwhip.toml, and configuration.toml
+  - Updated test expectations to reflect new default
+
 - **CI/CD**: GitHub Actions workflow for automated documentation deployment
   - Added `.github/workflows/deploy-docs.yml` for generating and deploying documentation
   - Uses Microdocs to convert README.md and CHANGELOG.md into HTML documentation site

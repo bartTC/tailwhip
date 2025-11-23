@@ -83,6 +83,7 @@ skip_expressions = [
     "{{",  # Django, Jinja2, Liquid, Handlebars
     "{%",  # Django, Jinja2, Liquid
     "<%",  # ERB, EJS
+    "?",   # Used as part of the JS ternary operator (e.g., `condition ? a : b`)
 ]
 
 

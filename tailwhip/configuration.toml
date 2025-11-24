@@ -234,6 +234,10 @@ prefixes = [
     # Components
     "container",
 
+    # Accessibility
+    "sr-only",
+    "not-sr-only",
+
     # Layout & Display
     "hidden",
     "visible",
@@ -536,10 +540,6 @@ prefixes = [
     # SVG
     "stroke",
     "fill",
-
-    # Accessibility
-    "sr-only",
-    "not-sr-only",
 
     # Placeholder
     "placeholder",

@@ -7,7 +7,7 @@ from dataclasses import dataclass
 from tailwhip.configuration import config
 
 
-@dataclass
+@dataclass(slots=True)
 class ParsedClass:
     """A parsed Tailwind CSS class with all its components."""
 
@@ -176,6 +176,9 @@ def _is_base_utility(parsed: ParsedClass) -> bool:
     )
 
 
+_MAX_RANK = 999999  # For unknown values not in any list
+
+
 def _component_rank(component_type: str, parsed: ParsedClass) -> tuple[int, str]:
     """
     Get the sort rank for a component type from a parsed class.
@@ -189,24 +192,59 @@ def _component_rank(component_type: str, parsed: ParsedClass) -> tuple[int, str]
     Unknown prefixes get -1 (sort first, non-Tailwind classes before Tailwind).
     Unknown values (not in the list) get max_rank (sort last).
     """
-    max_rank = 999999  # For unknown values not in any list
-
-    # Build component data map: (value, index_map, none_rank, unknown_rank)
-    component_data: dict[str, tuple[str | None, dict[str, int], int, int]] = {
-        "variant": (None, {}, 0, max_rank),  # Handled specially in sort_key
-        "prefix": (parsed.prefix, config.prefix_index, -1, -1),  # Unknown = first
-        "direction": (parsed.direction, config.direction_index, -1, max_rank),
-        "size": (parsed.size, config.size_index, max_rank, max_rank),
-        "value": (parsed.value, config.value_index, max_rank, max_rank),
-        "color": (parsed.color, config.color_index, max_rank, max_rank),
-        "shade": (parsed.shade, config.shade_index, max_rank, max_rank),
-        "alpha": (parsed.alpha, config.alpha_index, max_rank, max_rank),
-    }
-
-    if component_type not in component_data:
-        return (max_rank, "")
-
-    value, index_map, none_rank, unknown_rank = component_data[component_type]
+    # Get component data: (value, index_map, none_rank, unknown_rank)
+    # Using if/elif chain instead of dict lookup for performance
+    if component_type == "prefix":
+        value, index_map, none_rank, unknown_rank = (
+            parsed.prefix,
+            config.prefix_index,
+            -1,
+            -1,
+        )
+    elif component_type == "direction":
+        value, index_map, none_rank, unknown_rank = (
+            parsed.direction,
+            config.direction_index,
+            -1,
+            _MAX_RANK,
+        )
+    elif component_type == "size":
+        value, index_map, none_rank, unknown_rank = (
+            parsed.size,
+            config.size_index,
+            _MAX_RANK,
+            _MAX_RANK,
+        )
+    elif component_type == "value":
+        value, index_map, none_rank, unknown_rank = (
+            parsed.value,
+            config.value_index,
+            _MAX_RANK,
+            _MAX_RANK,
+        )
+    elif component_type == "color":
+        value, index_map, none_rank, unknown_rank = (
+            parsed.color,
+            config.color_index,
+            _MAX_RANK,
+            _MAX_RANK,
+        )
+    elif component_type == "shade":
+        value, index_map, none_rank, unknown_rank = (
+            parsed.shade,
+            config.shade_index,
+            _MAX_RANK,
+            _MAX_RANK,
+        )
+    elif component_type == "alpha":
+        value, index_map, none_rank, unknown_rank = (
+            parsed.alpha,
+            config.alpha_index,
+            _MAX_RANK,
+            _MAX_RANK,
+        )
+    else:
+        return (_MAX_RANK, "")
 
     if value is None:
         return (none_rank, "")
@@ -217,9 +255,7 @@ def _component_rank(component_type: str, parsed: ParsedClass) -> tuple[int, str]
 
 def _get_variant_rank(variant: str) -> int:
     """Get the sort rank for a single variant, supporting prefix matching."""
-    max_rank = 999999
-
-    # Try exact match first
+    # Try exact match first (fast path)
     if variant in config.variant_index:
         return config.variant_index[variant]
 
@@ -228,7 +264,7 @@ def _get_variant_rank(variant: str) -> int:
         if variant.startswith((known_variant + "-", known_variant + "[")):
             return idx
 
-    return max_rank
+    return _MAX_RANK
 
 
 def _variant_sort_key(variants: list[str]) -> tuple:

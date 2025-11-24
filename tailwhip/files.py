@@ -96,7 +96,7 @@ def get_diff(path: Path, old_text: str, new_text: str) -> Syntax:
     )
 
     # Remove blank lines
-    code = "\n".join([line.strip() for line in diff])
+    code = "\n".join(line.strip() for line in diff)
     return Syntax(code, "diff", theme="ansi_dark", background_color="default")
 
 

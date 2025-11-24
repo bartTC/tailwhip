@@ -398,6 +398,60 @@ variant_groups = [
     '(marker:|selection:|file:|placeholder:|backdrop:|first-letter:|first-line:)',
 ]
 
+
+# ----------------------------------------------------------------------------
+# Advanced Sorting Configuration
+# ----------------------------------------------------------------------------
+#
+# These settings control the specific sorting order for direction-based and
+# size-based utilities (e.g., rounded-t-sm, border-r-2).
+#
+# You can customize these if you prefer a different logical order (e.g.,
+# clockwise vs counter-clockwise).
+
+directions = [
+    "x",
+    "y",
+    "t",
+    "tr",
+    "r",
+    "br",
+    "b",
+    "bl",
+    "l",
+    "tl",
+    "s",
+    "ss",
+    "se",
+    "e",
+    "ee",
+    "es",
+]
+
+sizes = [
+    "2xs",
+    "xs",
+    "sm",
+    "md",
+    "lg",
+    "xl",
+    "2xl",
+    "3xl",
+    "4xl",
+    "5xl",
+    "6xl",
+    "7xl",
+    "8xl",
+    "9xl",
+    "full",
+    "none",
+    "auto",
+    "min",
+    "max",
+    "fit",
+]
+
+
 # ----------------------------------------------------------------------------
 # Color Recognition
 # ----------------------------------------------------------------------------

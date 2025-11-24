@@ -7,6 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- **Sorting**: Direction and size-based sorting for Tailwind utilities
+  - Added configurable `directions` list (x, y, t, tr, r, br, b, bl, l, tl, s, ss, se, e, ee, es) for logical directional ordering
+  - Added configurable `sizes` list (2xs through 9xl, plus full, none, auto, min, max, fit) for consistent size ordering
+  - Utilities with directions now sort in configured order (e.g., `border-t` before `border-r` before `border-b`)
+  - Utilities with sizes sort in configured order (e.g., `rounded-sm` before `rounded-md` before `rounded-lg`)
+  - Combined direction+size utilities sort correctly (e.g., `rounded-t-sm` before `rounded-t-lg` before `rounded-r-sm`)
+  - Eliminates need to manually specify every combination in configuration
+  - Arbitrary values (e.g., `border-[2px]`, `grid-cols-[200px_1fr_2fr]`) handled correctly as suffixes
+
 ### Fixed
 
 - **Sorting**: Negative utility classes now sort correctly alongside their positive counterparts

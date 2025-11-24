@@ -118,6 +118,8 @@ class TailwhipConfig(dynaconf.Dynaconf):
     tailwind_colors: set[str]
     custom_colors: set[str]
     class_patterns: list[dict[str, str]]
+    directions: list[str]
+    sizes: list[str]
 
     # Compiled regex patterns
     UTILITY_PATTERNS: list[re.Pattern]

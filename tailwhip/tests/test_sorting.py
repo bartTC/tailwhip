@@ -105,7 +105,7 @@ CLASS_GROUPS = (
         "outline-2",
         "outline-offset-2",
         "-outline-offset-3",
-        "outline-rounded"   
+        "outline-rounded",
         "shadow",
         "shadow-lg",
         "blur",
@@ -374,13 +374,13 @@ def test_sorting_custom_colors(iteration: int, monkeypatch: pytest.MonkeyPatch) 
     update_configuration({"custom_colors": {"primary", "secondary-500", "almond-500"}})
 
     classes = [
-        "border-1",  # Non colors
-        "border-b-4",
-        "border-t-2",
-        "border-almond-500",  # Border Colors
+        "border-1",  # Non colors (no direction comes first)
+        "border-t-2",  # Direction 't' (rank 2)
+        "border-b-4",  # Direction 'b' (rank 6)
+        "border-almond-500",  # Border Colors (no direction)
         "border-primary",
         "border-red-400",
-        "border-t-blue-500",  # Border Top Colors
+        "border-t-blue-500",  # Border Top Colors (direction 't')
         "border-t-secondary-500",
     ]
 
@@ -450,3 +450,55 @@ def test_duplicate_classes_are_squashed(html: str, expected: str) -> None:
     """Duplicate classes are squashed."""
     result = process_text(html)
     assert result == expected
+
+
+CLASS_GROUPS = (
+    [
+        "border",
+        "border-1",
+        "border-[2px]",
+        "border-x",
+        "border-y",
+        "border-t",
+        "border-r",
+        "border-b",
+        "border-l",
+    ],
+    # First size, then orientation, then size-orientation
+    [
+        "rounded",
+        "rounded-2xs",
+        "rounded-xs",
+        "rounded-md",
+        "rounded-lg",
+        "rounded-xl",
+        "rounded-2xl",
+        "rounded-3xl",
+        "rounded-full",
+        "rounded-none",
+        "rounded-t",
+        "rounded-t-xs",
+        "rounded-t-md",
+        "rounded-t-lg",
+        "rounded-r",
+        "rounded-r-xs",
+        "rounded-r-md",
+        "rounded-r-min",
+        "rounded-b",
+        "rounded-b-xs",
+        "rounded-b-md",
+        "rounded-b-none",
+        "rounded-l",
+        "rounded-l-xs",
+        "rounded-l-md",
+        "rounded-l-max",
+    ],
+)
+
+
+@pytest.mark.parametrize("classes", CLASS_GROUPS)
+@pytest.mark.parametrize("iteration", range(10))
+def test_orientation(classes: list[str], iteration: int) -> None:  # noqa: ARG001
+    """Test classes with orientation are automatically sorted."""
+    result = sort_classes(shuffle(classes))
+    assert result == classes

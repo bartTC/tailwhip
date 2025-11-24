@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import re
+
 from tailwhip.configuration import config
 
 
@@ -147,7 +149,119 @@ def utility_rank(utility: str) -> int:
     return -1  # len(configuration.GROUP_PATTERNS) + 1  # Unknown classes to the front
 
 
-def sort_key(cls: str) -> tuple[tuple[tuple[int, str], ...], int, bool, str]:
+def parse_utility_components(utility: str) -> tuple[str, str | None, str | None, str]:
+    """
+    Parse a utility into its components: prefix, direction, size, and suffix.
+
+    Many Tailwind utilities follow patterns like:
+    - <name>-<direction>: border-t, m-x, rounded-l
+    - <name>-<size>: text-sm, rounded-lg, shadow-xl
+    - <name>-<direction>-<size>: rounded-t-lg, border-r-2
+
+    Args:
+        utility: A base Tailwind CSS utility string (without variants)
+
+    Returns:
+        A tuple of (prefix, direction, size, suffix) where:
+        - prefix: The utility name before direction/size
+        - direction: The direction component (x, y, t, r, b, l, etc.) or None
+        - size: The size component (sm, lg, xl, etc.) or None
+        - suffix: Any remaining parts after size (for complex utilities)
+
+    Examples:
+        >>> parse_utility_components('border-t')
+        ('border', 't', None, '')
+
+        >>> parse_utility_components('rounded-lg')
+        ('rounded', None, 'lg', '')
+
+        >>> parse_utility_components('rounded-t-lg')
+        ('rounded', 't', 'lg', '')
+
+        >>> parse_utility_components('border-[2px]')
+        ('border', None, '[2px]', '')
+
+    """
+    # Handle arbitrary values like border-[2px]
+    # These should be treated as part of the suffix, not as direction/size
+    if "[" in utility:
+        # Match pattern like "border-[2px]" or "rounded-t-[10px]"
+        match = re.match(r"^([^-]+)-(.+?)-(\[.+?\])(.*)$", utility)
+        if match:
+            prefix, middle, arb_value, suffix = match.groups()
+            # Check if middle part is a direction
+            direction = middle if middle in config.directions else None
+            # Arbitrary values are not sizes - include them in the suffix
+            if direction:
+                return (prefix, direction, None, arb_value + suffix)
+            return (prefix, None, None, middle + "-" + arb_value + suffix)
+
+        match = re.match(r"^([^-]+)-(\[.+?\])(.*)$", utility)
+        if match:
+            prefix, arb_value, suffix = match.groups()
+            # Arbitrary value is part of suffix, not a size
+            return (prefix, None, None, arb_value + suffix)
+
+    parts = utility.split("-")
+    if len(parts) == 1:
+        return (utility, None, None, "")
+
+    prefix = parts[0]
+    remaining = parts[1:]
+
+    # Try to match direction and size patterns
+    direction = None
+    size = None
+    suffix_parts = []
+
+    # Check if first remaining part is a direction
+    if remaining and remaining[0] in config.directions:
+        direction = remaining[0]
+        remaining = remaining[1:]
+
+    # Check if next part is a size
+    if remaining and remaining[0] in config.sizes:
+        size = remaining[0]
+        remaining = remaining[1:]
+
+    # If we didn't find direction, check if first part is a size
+    min_parts_for_suffix = 2
+    if direction is None and not remaining and parts[1:]:
+        if parts[1] in config.sizes:
+            size = parts[1]
+            suffix_parts = parts[2:] if len(parts) > min_parts_for_suffix else []
+        else:
+            suffix_parts = parts[1:]
+    else:
+        suffix_parts = remaining
+
+    suffix = "-".join(suffix_parts) if suffix_parts else ""
+    return (prefix, direction, size, suffix)
+
+
+def direction_rank(direction: str | None) -> int:
+    """Get the rank of a direction for sorting."""
+    if direction is None:
+        return -1  # No direction comes first
+    try:
+        return config.directions.index(direction)
+    except ValueError:
+        return len(config.directions)  # Unknown directions go last
+
+
+def size_rank(size: str | None) -> int:
+    """Get the rank of a size for sorting."""
+    if size is None:
+        return -1  # No size comes first
+    try:
+        return config.sizes.index(size)
+    except ValueError:
+        return len(config.sizes)  # Unknown sizes go last
+
+
+def sort_key(
+    cls: str,
+) -> tuple[tuple[tuple[int, str], ...], int, bool, str, int, int, str]:
     """
     Generate a sort key for a Tailwind CSS class.
 
@@ -157,7 +271,10 @@ def sort_key(cls: str) -> tuple[tuple[tuple[int, str], ...], int, bool, str]:
     1. Variants (by their rank order from VARIANT_PREFIX_ORDER, then alphabetically)
     2. Utility rank (by category)
     3. Color status (non-color utilities before color utilities)
-    4. Base utility name (alphabetically within category)
+    4. Base utility name prefix (alphabetically within category)
+    5. Direction rank (x, y, t, r, b, l, etc.)
+    6. Size rank (sm, md, lg, xl, etc.)
+    7. Suffix (any remaining parts)
 
     Args:
         cls: A complete Tailwind CSS class string (with or without variants)
@@ -167,27 +284,34 @@ def sort_key(cls: str) -> tuple[tuple[tuple[int, str], ...], int, bool, str]:
 
     Examples:
         >>> sort_key('text-sm')
-        ((), 5, False, 'text-sm')
+        ((), 5, False, 'text', -1, <size_rank('sm')>, '')
 
-        >>> sort_key('text-blue-500')
-        ((), 5, True, 'text-blue-500')
+        >>> sort_key('border-t')
+        ((), 8, False, 'border', <direction_rank('t')>, -1, '')
 
-        >>> sort_key('hover:text-blue-500')
-        (((10, 'hover'),), 5, True, 'text-blue-500')
-
-        >>> sort_key('sm:hover:flex')
-        (((3, 'sm'), (10, 'hover')), 1, False, 'flex')
-
-        >>> sort_key('lg:container')
-        (((3, 'lg'),), 0, False, 'container')
+        >>> sort_key('rounded-t-lg')
+        ((), 8, False, 'rounded', <direction_rank('t')>, <size_rank('lg')>, '')
 
     """
     variants, base = variant_base(cls)
     variant_keys = tuple((variant_rank(v), v) for v in variants)
     is_color = is_color_utility(base)
+
     # Strip leading negative sign for consistent sorting (e.g., -m-4 sorts with m-4)
     base_for_sorting = base.lstrip("-")
-    return variant_keys, utility_rank(base), is_color, base_for_sorting
+
+    # Parse direction and size components
+    prefix, direction, size, suffix = parse_utility_components(base_for_sorting)
+
+    return (
+        variant_keys,
+        utility_rank(base),
+        is_color,
+        prefix,
+        direction_rank(direction),
+        size_rank(size),
+        suffix,
+    )
 
 
 def sort_classes(class_list: list[str]) -> list[str]:

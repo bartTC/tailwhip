@@ -57,14 +57,14 @@ def update_configuration(data: dict | Path) -> None:
     """Update configuration with the given data."""
     if isinstance(data, dict):
         config.update(data, merge=False)
-        _recompile_patterns()
+        _rebuild_lookups()
         return
 
     if isinstance(data, Path):
         with data.open("rb") as f:
             config_data = tomllib.load(f)
         config.update(config_data, merge=False)
-        _recompile_patterns()
+        _rebuild_lookups()
         return
 
     # pragma: no cover
@@ -72,13 +72,21 @@ def update_configuration(data: dict | Path) -> None:
     raise TypeError(msg)  # pragma: no cover
 
 
-def _recompile_patterns() -> None:
-    """Re-compile regular expressions pattern objects."""
-    config.all_colors = {*config.tailwind_colors, *config.custom_colors}
+def _rebuild_lookups() -> None:
+    """Rebuild lookup dictionaries and compile patterns."""
+    # Build lookup dicts for O(1) index access
+    config.variant_index = {v: i for i, v in enumerate(config.variants)}
+    config.prefix_index = {p: i for i, p in enumerate(config.prefixes)}
+    config.direction_index = {d: i for i, d in enumerate(config.directions)}
+    config.size_index = {s: i for i, s in enumerate(config.sizes)}
+    config.value_index = {v: i for i, v in enumerate(config.numerics)}
+    config.shade_index = {s: i for i, s in enumerate(config.shades)}
+    config.alpha_index = {a: i for i, a in enumerate(config.alphas)}
 
-    # Compile utility_groups and variant_groups into regexes
-    config.UTILITY_PATTERNS = [re.compile("^" + g) for g in config.utility_groups]
-    config.VARIANT_PATTERNS = [re.compile(v) for v in config.variant_groups]
+    # Combine colors into a single set and build index
+    config.all_colors = {*config.colors, *config.custom_colors}
+    all_colors_list = [*config.colors, *config.custom_colors]
+    config.color_index = {c: i for i, c in enumerate(all_colors_list)}
 
     # Compile class_patterns into Pattern objects with compiled regexes
     config.APPLY_PATTERNS = [
@@ -113,21 +121,35 @@ class TailwhipConfig(dynaconf.Dynaconf):
     default_globs: list[str]
     skip_expressions: list[str]
     variant_separator: str
-    utility_groups: list[str]
-    variant_groups: list[str]
-    tailwind_colors: set[str]
-    custom_colors: set[str]
     class_patterns: list[dict[str, str]]
+
+    # Component order and lists
+    component_order: list[str]
+    variants: list[str]
+    prefixes: list[str]
     directions: list[str]
     sizes: list[str]
+    numerics: list[str]
+    colors: list[str]
+    custom_colors: list[str]
+    shades: list[str]
+    alphas: list[str]
 
-    # Compiled regex patterns
-    UTILITY_PATTERNS: list[re.Pattern]
-    VARIANT_PATTERNS: list[re.Pattern]
-    APPLY_PATTERNS: list[Pattern]
+    # Lookup dictionaries (built at runtime for O(1) access)
+    variant_index: dict[str, int]
+    prefix_index: dict[str, int]
+    direction_index: dict[str, int]
+    size_index: dict[str, int]
+    value_index: dict[str, int]
+    color_index: dict[str, int]
+    shade_index: dict[str, int]
+    alpha_index: dict[str, int]
 
-    # Combined colors (computed from tailwind_colors + custom_colors)
+    # Combined colors
     all_colors: set[str]
+
+    # Compiled patterns
+    APPLY_PATTERNS: list[Pattern]
 
 
 config = TailwhipConfig(
@@ -139,5 +161,5 @@ config = TailwhipConfig(
     lowercase_read=True,
 )
 
-# Initialize constants on module load
-_recompile_patterns()
+# Initialize lookups on module load
+_rebuild_lookups()

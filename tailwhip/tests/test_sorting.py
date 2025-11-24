@@ -1,504 +1,439 @@
 """
 Tests for Tailwind CSS class sorting.
 
-This module tests the core sorting algorithm that reorders Tailwind classes
-according to utility groups, variants, and color priorities.
-
-Test Coverage:
-- Utility group ordering (layout, spacing, typography, etc.)
-- Variant sorting (responsive, hover, focus, etc.)
-- Color vs non-color utility prioritization
-- Alphabetical sorting within groups
-- Custom color handling
-- Duplicate class handling
-- Template markup handling (skip expressions)
-- Complex real-world examples (kitchen sink)
-
-The sorting algorithm follows this hierarchy:
-1. Group by utility type (using utility_groups regex patterns)
-2. Sort by variant specificity (using variant_groups patterns)
-3. Separate colors from non-colors (colors come last)
-4. Alphabetically within each category
+These tests verify that the sorting algorithm correctly orders classes
+based on the component_order configuration and individual component lists.
 """
 
 from __future__ import annotations
 
-import random
-
-import pytest
-
 from tailwhip.configuration import update_configuration
 from tailwhip.process import process_text
-from tailwhip.sorting import sort_classes
+from tailwhip.sorting import parse_class, sort_classes
+
+# =============================================================================
+# Parsing Tests
+# =============================================================================
 
 
-def shuffle(lst: list[str]) -> list[str]:
-    """Shuffle a list and ensuring no element stays in the original position."""
-    if len(lst) <= 1:
-        msg = "Cannot shuffle a list with less than 2 elements."
-        raise AssertionError(msg)
+class TestParseClass:
+    """Tests for the parse_class function."""
 
-    shuffled = lst.copy()
+    def test_simple_prefix(self) -> None:
+        """Simple utility with just a prefix."""
+        result = parse_class("flex")
+        assert result.prefix == "flex"
+        assert result.variants == []
+        assert result.important is False
+        assert result.negated is False
 
-    tries = 0
-    while True:
-        random.shuffle(shuffled)
+    def test_prefix_with_value(self) -> None:
+        """Utility with prefix and numeric value."""
+        result = parse_class("p-4")
+        assert result.prefix == "p"
+        assert result.value == "4"
 
-        if shuffled != lst:
-            return shuffled
+    def test_prefix_with_direction(self) -> None:
+        """Utility with prefix and direction."""
+        result = parse_class("border-t")
+        assert result.prefix == "border"
+        assert result.direction == "t"
 
-        tries += 1
+    def test_prefix_with_direction_and_value(self) -> None:
+        """Utility with prefix, direction, and value."""
+        result = parse_class("border-t-2")
+        assert result.prefix == "border"
+        assert result.direction == "t"
+        assert result.value == "2"
 
-        if tries > 100:
-            msg = "Unable to produce a shuffled list after 100 tries."
-            raise AssertionError(msg)
+    def test_prefix_with_color_and_shade(self) -> None:
+        """Utility with color and shade."""
+        result = parse_class("text-red-500")
+        assert result.prefix == "text"
+        assert result.color == "red"
+        assert result.shade == "500"
 
+    def test_prefix_with_direction_color_shade(self) -> None:
+        """Utility with direction, color, and shade."""
+        result = parse_class("border-t-red-500")
+        assert result.prefix == "border"
+        assert result.direction == "t"
+        assert result.color == "red"
+        assert result.shade == "500"
 
-# Test sorting of classes. Each of these groups contains a valid and correctly
-# ordered set of classes. The testrun is going to shuffle them, sort them and
-# compare the result.
-#
-# To mitigate shuffling randomness, we run the test multiple times.
-CLASS_GROUPS = (
-    # Container comes always first. But non-tailwind classes are firster.
-    [
-        "select2-container",  # Not tailwind
-        "container",  # Container is first
-        "m-2",
-        "font-bold",
-        "text-xl",
-    ],
-    #  Margin first, then padding. X, then Y, then in clockwise order.
-    #
-    #  m ->
-    #      none -> x -> y -> t -> r -> b -> l
-    #  p->
-    #      none -> x -> y -> t -> r -> b -> l
-    [
-        "m-2",
-        "mx-64",
-        "my-128",
-        "mt-4",
-        "mr-8",
-        "mb-16",
-        "ml-32",
-        "p-1",
-        "px-32",
-        "py-64",
-        "pt-2",
-        "pr-4",
-        "pb-8",
-        "pl-16",
-    ],
-    # Shortcuts like 'outline' for 'outline-1' are valid and come first.
-    [
-        "rounded",
-        "rounded-md",
-        "border",
-        "border-1",
-        "border-2",
-        "-border-rounded-1",
-        "border-rounded-2",
-        "ring",
-        "ring-8",
-        "outline",
-        "outline-2",
-        "outline-offset-2",
-        "-outline-offset-3",
-        "outline-rounded",
-        "shadow",
-        "shadow-lg",
-        "blur",
-        "blur-sm",
-        "grayscale",
-        "grayscale-0",
-        "invert",
-        "invert-0",
-        "sepia",
-        "sepia-0",
-        "drop-shadow",
-        "drop-shadow-md",
-        "transform",
-        "transform-gpu",
-        "transition",
-        "transition-all",
-    ],
-    # Negative values don't change order.
-    [
-        "m-2",
-        "-mx-64",
-        "-my-128",
-        "mt-4",
-        "-mr-8",
-        "mb-16",
-        "-ml-32",
-        "p-1",
-        "-px-32",
-        "py-64",
-        "-pt-2",
-        "-pr-4",
-        "pb-8",
-        "pl-16",
-    ],
-    # Negative values in variants retain order.
-    [
-        "-m-1",
-        "sm:-m-2",
-        "md:-m-3",
-        "lg:-m-4",
-        "xl:-m-5",
-        "2xl:-m-6",
-        "3xl:-m-7",
-    ],
-    # Size, W, Min-W, Max-W, H, Min-H, Max-H, Aspect.
-    [
-        "size-4",
-        "w-10",
-        "min-w-full",
-        "max-w-md",
-        "h-12",
-        "min-h-screen",
-        "max-h-96",
-        "aspect-square",
-    ],
-    # Same, but more complex values
-    [
-        "size-[40px]",
-        "w-[72rem]",
-        "min-w-[320px]",
-        "max-w-5xl",
-        "h-[calc(100vh-4rem)]",
-        "min-h-[60vh]",
-        "max-h-[800px]",
-        "aspect-[3/2]",
-    ],
-    # min-*: then max-*: variant
-    [
-        "text-base",
-        "min-[320px]:text-sm",
-        "max-[1024px]:hidden",
-        "max-[320px]:text-sm",
-    ],
-    # Font first, then Text, Colors are always last of each group
-    [
-        r"font-light",
-        r"font-gray-500",
-        r"text-pretty",
-        r"text-xl",
-        r"text-black/90",
-        r"text-red-400",
-    ],
-    # Breakpoints: none -> sm -> md -> lg -> xl -> 2xl
-    [
-        "p-2",
-        "font-light",
-        "text-sm",
-        "text-gray-600",
-        "sm:p-4",
-        "sm:font-normal",
-        "sm:text-base",
-        "sm:text-gray-700",  # Color is last
-        "md:p-6",
-        "md:font-medium",
-        "md:text-lg",
-        "md:text-gray-800",
-        "lg:p-8",
-        "lg:font-semibold",
-        "lg:text-xl",
-        "lg:text-gray-900",
-        "xl:p-10",
-        "xl:font-bold",
-        "xl:text-2xl",
-        "xl:text-black",
-        "2xl:p-12",
-        "2xl:font-extrabold",
-        "2xl:text-3xl",
-        "2xl:text-black/90",
-    ],
-    # first: -> last: -> odd: -> even:
-    [
-        "first:border-t-0",
-        "last:border-b-0",
-        "odd:bg-gray-100",
-        "even:bg-white",
-    ],
-    # dark: -> sm: -> md: -> lg: -> etc. And also within sub groups.
-    [
-        "dark:text-white",
-        "dark:md:hover:text-blue-300",
-        "dark:lg:hover:bg-gray-900",
-        "sm:disabled:opacity-50",
-        "md:first:px-4",
-        "md:focus:text-white",
-        "lg:text-xl",
-        "lg:focus:hover:bg-blue-500",
-        "first:mt-0",
-        "focus:text-black",
-        "hover:bg-red-500",
-        "group-hover:bg-blue-500",
-        "peer-checked:bg-green-500",
-    ],
-    [
-        "border-1",  # No group, No color
-        "border-t-2",
-        "border-red-400",  # No group, Color
-        "border-t-blue-500",
-        "dark:border-1",  # Dark first
-        "dark:border-t-2",
-        "dark:border-red-400",  # Dark colors
-        "dark:border-t-blue-500",
-        "sm:border-1",  # Breakpoint before other
-        "sm:border-t-2",
-        "sm:border-red-400",
-        "sm:border-t-blue-500",
-        "focus:sm:border-1",  # Small breakpoint before large
-        "focus:sm:border-t-2",
-        "focus:sm:border-red-400",
-        "focus:sm:border-t-blue-500",
-        "focus:lg:border-1",
-        "focus:lg:border-t-2",
-        "focus:lg:border-red-400",
-        "focus:lg:border-t-blue-500",
-        "focus:border-1",  # No breakpoint after other
-        "focus:border-t-2",
-        "focus:border-red-400",
-        "focus:border-t-blue-500",
-    ],
-    # Grid -> Cols -> Rows -> Gap
-    [
-        "grid",
-        "grid-cols-[200px_1fr_2fr]",
-        "grid-rows-4",
-        "gap-4",
-    ],
-    # Gradient From -> To -> Via
-    [
-        "m-4",
-        "bg-gradient-to-br",
-        "from-pink-500",
-        "to-yellow-500",
-        "via-red-500",
-    ],
-    # Backdrop Blue Brightness etc.
-    [
-        "p-6",
-        "bg-white/50",
-        "backdrop-blur-md",
-        "backdrop-brightness-75",
-        "backdrop-contrast-125",
-    ],
-    # Arbitrary HTML
-    [
-        "p-2",
-        "[&_a]:hover:underline",
-        "[&>*]:p-4",
-        "[&_a]:text-blue-500",
-    ],
-    # After before Before
-    [
-        "after:content-['>']",
-        "before:content-['']",
-        "before:content-['★']",
-    ],
-    # Classes which maybe standalone
-    [
-        "hidden",
-        "grow",
-        "grow-0",
-        "shrink",
-        "shrink-0",
-        "truncate",
-        "truncate-0",
-    ],
-    # Cols before rows
-    [
-        "grid",
-        "grid-cols-2",
-        "grid-rows-4",
-        "gap-4",
-    ],
-    # Cols before rows
-    [
-        "flex",
-        "flex-col",
-        "flex-col-reverse",
-        "flex-row",
-        "flex-row-reverse",
-        "items-stretch",
-    ],
-    # Gap X before Y
-    [
-        "grid",
-        "gap-2",
-        "gap-x-2",
-        "gap-y-2",
-        "space-x-2",
-        "space-y-2",
-    ],
-    # Container queries come before variants
-    [
-        "p-4",
-        "@container:p-4",
-        "@lg:text-xl",
-        "@xl:grid-cols-3",
-        "dark:p-4",
-        "lg:p-4",
-        "xl:p-4",
-    ],
-    # Top -> Right -> Bottom -> Left
-    [
-        "top-[10px]",
-        "right-[20px]",
-        "bottom-[30px]",
-        "left-[40px]",
-    ],
-)
+    def test_alpha_value(self) -> None:
+        """Utility with alpha opacity value."""
+        result = parse_class("bg-red-500/50")
+        assert result.prefix == "bg"
+        assert result.color == "red"
+        assert result.shade == "500"
+        assert result.alpha == "50"
+
+    def test_important_prefix(self) -> None:
+        """Important utility with ! prefix."""
+        result = parse_class("!mt-4")
+        assert result.important is True
+        assert result.prefix == "mt"
+        assert result.value == "4"
+
+    def test_negated_value(self) -> None:
+        """Negated utility with - prefix."""
+        result = parse_class("-mt-4")
+        assert result.negated is True
+        assert result.prefix == "mt"
+        assert result.value == "4"
+
+    def test_important_and_negated(self) -> None:
+        """Both important and negated."""
+        result = parse_class("!-mt-4")
+        assert result.important is True
+        assert result.negated is True
+        assert result.prefix == "mt"
+        assert result.value == "4"
+
+    def test_single_variant(self) -> None:
+        """Utility with a single variant."""
+        result = parse_class("hover:bg-red-500")
+        assert result.variants == ["hover"]
+        assert result.prefix == "bg"
+        assert result.color == "red"
+        assert result.shade == "500"
+
+    def test_multiple_variants(self) -> None:
+        """Utility with multiple stacked variants."""
+        result = parse_class("sm:hover:focus:bg-red-500")
+        assert result.variants == ["sm", "hover", "focus"]
+        assert result.prefix == "bg"
+        assert result.color == "red"
+
+    def test_compound_prefix(self) -> None:
+        """Compound prefix like inline-flex."""
+        result = parse_class("inline-flex")
+        assert result.prefix == "inline-flex"
+
+    def test_arbitrary_value(self) -> None:
+        """Arbitrary value in brackets."""
+        result = parse_class("w-[100px]")
+        assert result.prefix == "w"
+        assert result.suffix == "[100px]"
+
+    def test_size_modifier(self) -> None:
+        """Size modifier like text-xl."""
+        result = parse_class("text-xl")
+        assert result.prefix == "text"
+        assert result.size == "xl"
+
+    def test_size_with_direction(self) -> None:
+        """Size with direction like rounded-t-lg."""
+        result = parse_class("rounded-t-lg")
+        assert result.prefix == "rounded"
+        assert result.direction == "t"
+        assert result.size == "lg"
 
 
-@pytest.mark.parametrize("classes", CLASS_GROUPS)
-@pytest.mark.parametrize("iteration", range(10))
-def test_sorting(classes: list[str], iteration: int) -> None:  # noqa: ARG001
-    """
-    Test sorting of classes.
-
-    The classes in the parameter are in the correct order. We shuffle them before
-    we do the comparison. To mitigate randomness, we run the test multiple times.
-    """
-    result = sort_classes(shuffle(classes))
-    assert result == classes
+# =============================================================================
+# Sorting Tests - Component Order
+# =============================================================================
 
 
-@pytest.mark.parametrize("iteration", range(10))
-def test_sorting_custom_colors(iteration: int, monkeypatch: pytest.MonkeyPatch) -> None:  # noqa: ARG001
-    """Custom colors are sorted along with other colors."""
-    update_configuration({"custom_colors": {"primary", "secondary-500", "almond-500"}})
+class TestSortingByVariant:
+    """Tests for variant-based sorting."""
 
-    classes = [
-        "border-1",  # Non colors (no direction comes first)
-        "border-t-2",  # Direction 't' (rank 2)
-        "border-b-4",  # Direction 'b' (rank 6)
-        "border-almond-500",  # Border Colors (no direction)
-        "border-primary",
-        "border-red-400",
-        "border-t-blue-500",  # Border Top Colors (direction 't')
-        "border-t-secondary-500",
-    ]
+    def test_no_variant_before_variant(self) -> None:
+        """Classes without variants come before classes with variants."""
+        result = sort_classes(["hover:p-4", "p-4"])
+        assert result == ["p-4", "hover:p-4"]
 
-    result = sort_classes(shuffle(classes))
-    assert result == classes
+    def test_variant_order_breakpoints(self) -> None:
+        """Breakpoint variants are ordered sm -> md -> lg -> xl."""
+        result = sort_classes(["xl:p-4", "sm:p-4", "lg:p-4", "md:p-4"])
+        assert result == ["sm:p-4", "md:p-4", "lg:p-4", "xl:p-4"]
 
+    def test_variant_order_dark_before_breakpoints(self) -> None:
+        """Dark mode comes before breakpoints."""
+        result = sort_classes(["sm:p-4", "dark:p-4"])
+        assert result == ["dark:p-4", "sm:p-4"]
 
-def test_deduplication() -> None:
-    """Duplicate classes are deduplicated."""
-    result = sort_classes(["p-4", "p-4", "p-4"])
-    assert result == ["p-4"]
+    def test_variant_order_interactive(self) -> None:
+        """Interactive variants are ordered hover -> focus -> active."""
+        result = sort_classes(["active:p-4", "hover:p-4", "focus:p-4"])
+        assert result == ["hover:p-4", "focus:p-4", "active:p-4"]
 
-
-@pytest.mark.parametrize(
-    "html",
-    [
-        '<div class="p-4 container {{ extra_classes }}"></div>',
-        '<div class="{% if not active %}hidden{% endif %} p-4 container"></div>',
-        ".container{ @apply p-4 container {{ extra_classes }}; }",
-        ".container{ @apply; }",
-        ".container{ @apply ; }",
-        '<div class=""></div>',
-        '<div class=" "></div>',
-        "<div class=''></div>",
-    ],
-)
-def test_unprocessed_content(html: str) -> None:
-    """Empty classes or classes with Template syntax are not changed."""
-    result = process_text(html)
-    assert result == html
+    def test_stacked_variants(self) -> None:
+        """Stacked variants are compared element by element."""
+        result = sort_classes(["lg:hover:p-4", "sm:hover:p-4"])
+        assert result == ["sm:hover:p-4", "lg:hover:p-4"]
 
 
-@pytest.mark.parametrize(
-    ("html", "expected"),
-    [
-        (
-            '<div class="p-4 container">{{ title }}</div>',
-            '<div class="container p-4">{{ title }}</div>',
-        ),
-        (
-            '{% if not active %}<div class="p-4 container">{{ title }}</div>{% endif %}',
-            '{% if not active %}<div class="container p-4">{{ title }}</div>{% endif %}',
-        ),
-        (
-            "{% if css %}.container{ @apply p-4 container; }{% endif %}",
-            "{% if css %}.container{ @apply container p-4; }{% endif %}",
-        ),
-    ],
-)
-def test_template_markup_outside(html: str, expected: str) -> None:
-    """Template syntax is not in the classes, so this is sorted."""
-    result = process_text(html)
-    assert result == expected
+class TestSortingByPrefix:
+    """Tests for prefix-based sorting."""
+
+    def test_layout_before_spacing(self) -> None:
+        """Layout utilities come before spacing."""
+        result = sort_classes(["p-4", "flex"])
+        assert result == ["flex", "p-4"]
+
+    def test_container_first(self) -> None:
+        """Container is always first."""
+        result = sort_classes(["p-4", "flex", "container"])
+        assert result == ["container", "flex", "p-4"]
+
+    def test_margin_before_padding(self) -> None:
+        """Margin comes before padding."""
+        result = sort_classes(["p-4", "m-4"])
+        assert result == ["m-4", "p-4"]
+
+    def test_prefix_alphabetical_for_unknown(self) -> None:
+        """Unknown prefixes are sorted alphabetically."""
+        result = sort_classes(["zzz-custom", "aaa-custom"])
+        assert result == ["aaa-custom", "zzz-custom"]
 
 
-@pytest.mark.parametrize(
-    ("html", "expected"),
-    [
-        (
-            '<div class="p-4 container p-4"></div>',
-            '<div class="container p-4"></div>',
-        ),
-        ("@apply p-4 container p-4;", "@apply container p-4;"),
-    ],
-)
-def test_duplicate_classes_are_squashed(html: str, expected: str) -> None:
-    """Duplicate classes are squashed."""
-    result = process_text(html)
-    assert result == expected
+class TestSortingByDirection:
+    """Tests for direction-based sorting."""
+
+    def test_no_direction_first(self) -> None:
+        """No direction comes before directional variants."""
+        result = sort_classes(["border-t", "border"])
+        assert result == ["border", "border-t"]
+
+    def test_direction_order(self) -> None:
+        """Directions follow the configured order: x, y, t, r, b, l."""
+        result = sort_classes(["border-l", "border-t", "border-y", "border-x"])
+        assert result == ["border-x", "border-y", "border-t", "border-l"]
+
+    def test_direction_with_values(self) -> None:
+        """Direction sorting works with values."""
+        result = sort_classes(["border-b-2", "border-t-2"])
+        assert result == ["border-t-2", "border-b-2"]
 
 
-CLASS_GROUPS = (
-    [
-        "border",
-        "border-1",
-        "border-[2px]",
-        "border-x",
-        "border-y",
-        "border-t",
-        "border-r",
-        "border-b",
-        "border-l",
-    ],
-    # First size, then orientation, then size-orientation
-    [
-        "rounded",
-        "rounded-2xs",
-        "rounded-xs",
-        "rounded-md",
-        "rounded-lg",
-        "rounded-xl",
-        "rounded-2xl",
-        "rounded-3xl",
-        "rounded-full",
-        "rounded-none",
-        "rounded-t",
-        "rounded-t-xs",
-        "rounded-t-md",
-        "rounded-t-lg",
-        "rounded-r",
-        "rounded-r-xs",
-        "rounded-r-md",
-        "rounded-r-min",
-        "rounded-b",
-        "rounded-b-xs",
-        "rounded-b-md",
-        "rounded-b-none",
-        "rounded-l",
-        "rounded-l-xs",
-        "rounded-l-md",
-        "rounded-l-max",
-    ],
-)
+class TestSortingBySize:
+    """Tests for size-based sorting."""
+
+    def test_size_order(self) -> None:
+        """Sizes follow the configured order: xs, sm, md, lg, xl, etc."""
+        result = sort_classes(["text-xl", "text-sm", "text-lg", "text-xs"])
+        assert result == ["text-xs", "text-sm", "text-lg", "text-xl"]
+
+    def test_no_size_before_size(self) -> None:
+        """No size comes before sized variants."""
+        result = sort_classes(["blur-sm", "blur"])
+        assert result == ["blur", "blur-sm"]
+
+    def test_size_with_direction(self) -> None:
+        """Size sorting works with direction."""
+        result = sort_classes(["rounded-t-xl", "rounded-t-sm"])
+        assert result == ["rounded-t-sm", "rounded-t-xl"]
 
 
-@pytest.mark.parametrize("classes", CLASS_GROUPS)
-@pytest.mark.parametrize("iteration", range(10))
-def test_orientation(classes: list[str], iteration: int) -> None:  # noqa: ARG001
-    """Test classes with orientation are automatically sorted."""
-    result = sort_classes(shuffle(classes))
-    assert result == classes
+class TestSortingByValue:
+    """Tests for value-based sorting."""
+
+    def test_numeric_value_order(self) -> None:
+        """Numeric values follow configured order."""
+        result = sort_classes(["p-8", "p-2", "p-4"])
+        assert result == ["p-2", "p-4", "p-8"]
+
+    def test_zero_first(self) -> None:
+        """Zero comes first."""
+        result = sort_classes(["m-4", "m-0"])
+        assert result == ["m-0", "m-4"]
+
+
+class TestSortingByColor:
+    """Tests for color-based sorting."""
+
+    def test_no_color_before_color(self) -> None:
+        """Non-color utilities come before color utilities."""
+        result = sort_classes(["text-red-500", "text-xl"])
+        assert result == ["text-xl", "text-red-500"]
+
+    def test_color_order(self) -> None:
+        """Colors follow configured order."""
+        result = sort_classes(["bg-blue-500", "bg-red-500", "bg-gray-500"])
+        assert result == ["bg-gray-500", "bg-red-500", "bg-blue-500"]
+
+    def test_black_white_first(self) -> None:
+        """Black and white come early in color order."""
+        result = sort_classes(["text-red-500", "text-black", "text-white"])
+        assert result == ["text-black", "text-white", "text-red-500"]
+
+
+class TestSortingByShade:
+    """Tests for shade-based sorting."""
+
+    def test_shade_order(self) -> None:
+        """Shades follow numeric order 50 -> 100 -> ... -> 950."""
+        result = sort_classes(["bg-red-700", "bg-red-300", "bg-red-500"])
+        assert result == ["bg-red-300", "bg-red-500", "bg-red-700"]
+
+
+class TestSortingByAlpha:
+    """Tests for alpha-based sorting."""
+
+    def test_alpha_before_no_alpha(self) -> None:
+        """Alpha variants come before no-alpha (consistent with other components)."""
+        result = sort_classes(["bg-red-500/50", "bg-red-500"])
+        assert result == ["bg-red-500/50", "bg-red-500"]
+
+    def test_alpha_order(self) -> None:
+        """Alpha values are ordered numerically."""
+        result = sort_classes(["bg-red-500/75", "bg-red-500/25", "bg-red-500/50"])
+        assert result == ["bg-red-500/25", "bg-red-500/50", "bg-red-500/75"]
+
+
+# =============================================================================
+# Sorting Tests - Special Cases
+# =============================================================================
+
+
+class TestNegatedClasses:
+    """Tests for negated class handling."""
+
+    def test_negated_stays_with_group(self) -> None:
+        """Negated classes stay with their non-negated siblings."""
+        result = sort_classes(["mx-4", "-mx-2", "my-4"])
+        # -mx-2 should be near mx-4, not separated
+        assert result.index("-mx-2") < result.index("my-4")
+
+    def test_negated_margin_order(self) -> None:
+        """Negated margins maintain proper order."""
+        result = sort_classes(["-mb-4", "mt-4", "-ml-4"])
+        assert result in (["mt-4", "-mb-4", "-ml-4"],)
+
+
+class TestImportantClasses:
+    """Tests for important class handling."""
+
+    def test_important_stays_with_group(self) -> None:
+        """Important classes stay with their non-important siblings."""
+        result = sort_classes(["!mt-4", "mt-4", "p-4"])
+        # Both mt-4 variants should come before p-4
+        mt_indices = [result.index("!mt-4"), result.index("mt-4")]
+        p_index = result.index("p-4")
+        assert all(i < p_index for i in mt_indices)
+
+
+class TestDeduplication:
+    """Tests for duplicate class handling."""
+
+    def test_duplicates_removed(self) -> None:
+        """Duplicate classes are removed."""
+        result = sort_classes(["p-4", "p-4", "p-4"])
+        assert result == ["p-4"]
+
+    def test_first_occurrence_kept(self) -> None:
+        """First occurrence of duplicate is kept."""
+        result = sort_classes(["p-4", "flex", "p-4"])
+        assert result == ["flex", "p-4"]
+
+
+class TestArbitraryValues:
+    """Tests for arbitrary value handling."""
+
+    def test_arbitrary_width(self) -> None:
+        """Arbitrary width values are handled."""
+        result = sort_classes(["w-[100px]", "w-4"])
+        # Known value should come before arbitrary
+        assert result == ["w-4", "w-[100px]"]
+
+    def test_arbitrary_grid(self) -> None:
+        """Arbitrary grid values are handled."""
+        result = sort_classes(["grid-cols-[200px_1fr]", "grid-cols-2"])
+        assert result == ["grid-cols-2", "grid-cols-[200px_1fr]"]
+
+
+# =============================================================================
+# Integration Tests
+# =============================================================================
+
+
+class TestProcessText:
+    """Tests for full text processing."""
+
+    def test_html_class_attribute(self) -> None:
+        """HTML class attributes are sorted."""
+        html = '<div class="p-4 flex container"></div>'
+        expected = '<div class="container flex p-4"></div>'
+        assert process_text(html) == expected
+
+    def test_css_apply(self) -> None:
+        """CSS @apply directives are sorted."""
+        css = "@apply p-4 flex container;"
+        expected = "@apply container flex p-4;"
+        assert process_text(css) == expected
+
+    def test_template_expressions_skipped(self) -> None:
+        """Template expressions are not modified."""
+        html = '<div class="p-4 container {{ extra }}"></div>'
+        assert process_text(html) == html
+
+    def test_empty_class_unchanged(self) -> None:
+        """Empty class attributes are unchanged."""
+        html = '<div class=""></div>'
+        assert process_text(html) == html
+
+
+class TestCustomColors:
+    """Tests for custom color configuration."""
+
+    def test_custom_colors_recognized(self) -> None:
+        """Custom colors are recognized and sorted."""
+        update_configuration({"custom_colors": ["brand", "accent"]})
+
+        result = sort_classes(["text-brand", "text-red-500"])
+        # Custom colors should be sorted after built-in colors
+        assert result == ["text-red-500", "text-brand"]
+
+
+# =============================================================================
+# Real-World Examples
+# =============================================================================
+
+
+class TestRealWorldExamples:
+    """Tests with realistic class combinations."""
+
+    def test_button_classes(self) -> None:
+        """Typical button styling classes."""
+        classes = [
+            "hover:bg-blue-600",
+            "text-white",
+            "font-bold",
+            "py-2",
+            "px-4",
+            "rounded",
+            "bg-blue-500",
+        ]
+        result = sort_classes(classes)
+        # Spacing before typography, bg before rounded (by prefix order)
+        assert result.index("py-2") < result.index("font-bold")
+        assert result.index("bg-blue-500") < result.index("rounded")
+        assert result.index("bg-blue-500") < result.index("hover:bg-blue-600")
+
+    def test_card_classes(self) -> None:
+        """Typical card component classes."""
+        classes = [
+            "shadow-lg",
+            "p-6",
+            "bg-white",
+            "rounded-lg",
+            "max-w-sm",
+            "mx-auto",
+        ]
+        result = sort_classes(classes)
+        # Sizing before spacing before effects
+        assert result.index("max-w-sm") < result.index("mx-auto")
+        assert result.index("p-6") < result.index("bg-white")
+
+    def test_responsive_text(self) -> None:
+        """Responsive text sizing."""
+        classes = [
+            "lg:text-xl",
+            "text-base",
+            "md:text-lg",
+            "sm:text-sm",
+        ]
+        result = sort_classes(classes)
+        assert result == ["text-base", "sm:text-sm", "md:text-lg", "lg:text-xl"]

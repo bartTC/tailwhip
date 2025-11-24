@@ -42,12 +42,12 @@ UNSORTED_HTML = """<style>
 
 # Expected sorted HTML (classes sorted according to Tailwind conventions)
 SORTED_HTML = """<style>
-    .btn { @apply px-4 py-2 font-semibold text-white bg-blue-500 rounded-lg active:scale-95 focus:ring-2 hover:bg-blue-600; }
+    .btn { @apply px-4 py-2 font-semibold text-white bg-blue-500 rounded-lg hover:bg-blue-600 focus:ring-2 active:scale-95; }
     .card { @apply p-6 bg-white rounded-xl border-2 border-gray-200 shadow-lg hover:shadow-xl; }
 </style>
 <div class="container max-w-4xl mx-auto p-4 dark:bg-gray-900 lg:max-w-6xl">
     <h1 class="mb-4 font-bold text-3xl text-gray-900 dark:text-white sm:text-4xl md:text-5xl">Title</h1>
-    <button class="px-6 py-3 font-medium text-white bg-indigo-500 rounded-md transition-all disabled:opacity-50 active:scale-95 focus:ring-2 focus:ring-indigo-500 hover:bg-indigo-600">Click</button>
+    <button class="px-6 py-3 font-medium text-white bg-indigo-500 rounded-md transition-all disabled:opacity-50 hover:bg-indigo-600 focus:ring-2 focus:ring-indigo-500 active:scale-95">Click</button>
 </div>
 """
 

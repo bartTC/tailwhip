@@ -7,29 +7,46 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-### Added
+### Changed
 
-- **Sorting**: Direction and size-based sorting for Tailwind utilities
-  - Added configurable `directions` list (x, y, t, tr, r, br, b, bl, l, tl, s, ss, se, e, ee, es) for logical directional ordering
-  - Added configurable `sizes` list (2xs through 9xl, plus full, none, auto, min, max, fit) for consistent size ordering
-  - Utilities with directions now sort in configured order (e.g., `border-t` before `border-r` before `border-b`)
-  - Utilities with sizes sort in configured order (e.g., `rounded-sm` before `rounded-md` before `rounded-lg`)
-  - Combined direction+size utilities sort correctly (e.g., `rounded-t-sm` before `rounded-t-lg` before `rounded-r-sm`)
-  - Eliminates need to manually specify every combination in configuration
-  - Arbitrary values (e.g., `border-[2px]`, `grid-cols-[200px_1fr_2fr]`) handled correctly as suffixes
+- **Sorting**: Complete overhaul with list-based configuration system
 
-### Fixed
+  **THE GOLDEN RULE: If it's not in the TOML, it doesn't affect sorting.**
 
-- **Sorting**: Negative utility classes now sort correctly alongside their positive counterparts
-  - Leading "-" is ignored for sorting purposes (e.g., `-m-4` sorts with `m-4`, `-outline-offset-2` sorts with `outline-offset-3`)
-  - Ensures consistent ordering regardless of sign
+  Every sort decision can now be traced back to an ordered list in the configuration file.
+  No more regex patterns for utility groups - everything is explicit and predictable.
 
-- **Configuration**: Added shortcut utilities to default configuration for proper sorting
-  - Added standalone `border`, `ring`, and `outline` utilities to `utility_groups`
-  - Added standalone `rounded`, `shadow`, `filter`, `blur`, `grayscale`, `invert`, `sepia`, `drop-shadow`, `transform`, and `transition` utilities
-  - Shortcuts like `outline` (for `outline-1`) now sort correctly before their numbered variants (e.g., `outline`, `outline-2`, `outline-offset-2`)
+  **New configuration structure:**
+  - `component_order` defines comparison priority: `["variant", "prefix", "direction", "size", "value", "color", "shade", "alpha"]`
+  - `variants` list for variant ordering (breakpoints, states, pseudo-elements)
+  - `prefixes` list for utility prefix ordering (layout, spacing, typography, etc.)
+  - `directions` list for directional modifiers (x, y, t, r, b, l, etc.)
+  - `sizes` list for size modifiers (xs, sm, md, lg, xl, etc.)
+  - `numerics` list for spacing/sizing values (0, 1, 2, 4, 8, etc.)
+  - `colors` list for color ordering
+  - `shades` list for color shade ordering (50-950)
+  - `alphas` list for opacity values
 
-- **Documentation**: Fixed typo in CHANGELOG.md ("dtest" → "test")
+  **Sorting behavior:**
+  - Non-Tailwind classes sort first (preserves external library classes)
+  - No-direction utilities sort before directional variants (`border-1` before `border-t-1`)
+  - Base utilities sort before modified variants (`blur` before `blur-sm`)
+  - Variants support prefix matching (`min-[320px]:` matches `min` in variants list)
+
+  **Configuration improvements:**
+  - Grouped `flex`/`inline-flex` and `grid`/`inline-grid` together
+  - Added missing utilities: `text-wrap`, `text-pretty`, `underline`, `uppercase`, `italic`, etc.
+  - Added `inset-x`, `inset-y` for positioning
+  - Added `grid-flow-row`, `grid-flow-col`, `grid-flow-dense` variants
+  - Added `min`/`max` to variants for arbitrary breakpoint support
+  - Removed duplicate `content` entry
+  - Removed mutually exclusive values (border styles, `auto`, `none`) - they don't need ordering since you can't have both `border-solid` and `border-dashed`
+
+  **Benefits:**
+  - Fully declarative - every ordering decision is visible in the TOML
+  - Predictable - no hidden regex magic
+  - Extensible - add new utilities by adding to the appropriate list
+  - Debuggable - trace any sort order to a specific list position
 
 ## [0.12.0] - 2025-11-23
 

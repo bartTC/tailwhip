@@ -250,14 +250,14 @@ class TestSortingByColor:
         assert result == ["text-xl", "text-red-500"]
 
     def test_color_order(self) -> None:
-        """Colors follow configured order."""
+        """Colors are sorted alphabetically."""
         result = sort_classes(["bg-blue-500", "bg-red-500", "bg-gray-500"])
-        assert result == ["bg-gray-500", "bg-red-500", "bg-blue-500"]
+        assert result == ["bg-blue-500", "bg-gray-500", "bg-red-500"]
 
-    def test_black_white_first(self) -> None:
-        """Black and white come early in color order."""
+    def test_black_white_alphabetical(self) -> None:
+        """Black and white sort alphabetically with other colors."""
         result = sort_classes(["text-red-500", "text-black", "text-white"])
-        assert result == ["text-black", "text-white", "text-red-500"]
+        assert result == ["text-black", "text-red-500", "text-white"]
 
 
 class TestSortingByShade:
@@ -379,12 +379,20 @@ class TestCustomColors:
     """Tests for custom color configuration."""
 
     def test_custom_colors_recognized(self) -> None:
-        """Custom colors are recognized and sorted."""
+        """Custom colors are merged alphabetically with built-in colors."""
         update_configuration({"custom_colors": ["brand", "accent"]})
 
-        result = sort_classes(["text-brand", "text-red-500"])
-        # Custom colors should be sorted after built-in colors
-        assert result == ["text-red-500", "text-brand"]
+        result = sort_classes(["text-brand", "text-red-500", "text-accent"])
+        # Custom colors sorted alphabetically: accent < brand < red
+        assert result == ["text-accent", "text-brand", "text-red-500"]
+
+    def test_custom_colors_interleaved(self) -> None:
+        """Custom colors interleave alphabetically with built-in colors."""
+        update_configuration({"custom_colors": ["primary"]})
+
+        result = sort_classes(["text-purple-500", "text-primary-500", "text-pink-500"])
+        # Alphabetical order: pink < primary < purple
+        assert result == ["text-pink-500", "text-primary-500", "text-purple-500"]
 
 
 # =============================================================================

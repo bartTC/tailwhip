@@ -652,35 +652,38 @@ numerics = [
 # ----------------------------------------------------------------------------
 # Colors
 # ----------------------------------------------------------------------------
+#
+# Colors are sorted alphabetically at runtime (merged with custom_colors).
+# The order here doesn't affect sorting - it's just for documentation.
 
 colors = [
-    "inherit",
-    "current",
-    "transparent",
-    "black",
-    "white",
-    "slate",
-    "gray",
-    "zinc",
-    "neutral",
-    "stone",
-    "red",
-    "orange",
     "amber",
-    "yellow",
-    "lime",
-    "green",
-    "emerald",
-    "teal",
-    "cyan",
-    "sky",
+    "black",
     "blue",
-    "indigo",
-    "violet",
-    "purple",
+    "current",
+    "cyan",
+    "emerald",
     "fuchsia",
+    "gray",
+    "green",
+    "indigo",
+    "inherit",
+    "lime",
+    "neutral",
+    "orange",
     "pink",
+    "purple",
+    "red",
     "rose",
+    "sky",
+    "slate",
+    "stone",
+    "teal",
+    "transparent",
+    "violet",
+    "white",
+    "yellow",
+    "zinc",
 ]
 
 custom_colors = []

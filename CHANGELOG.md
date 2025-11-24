@@ -59,6 +59,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   |--------|-------|-------------|
   | 1.81s  | 0.99s | 45% faster  |
 
+- **Colors**: Colors and custom_colors are now merged and sorted alphabetically
+  - Custom colors integrate naturally with built-in colors (e.g., `brand` sorts between `blue` and `current`)
+  - Removed unused `all_colors` set from configuration
+
 ## [0.12.0] - 2025-11-23
 
 ### Added

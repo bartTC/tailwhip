@@ -83,10 +83,9 @@ def _rebuild_lookups() -> None:
     config.shade_index = {s: i for i, s in enumerate(config.shades)}
     config.alpha_index = {a: i for i, a in enumerate(config.alphas)}
 
-    # Combine colors into a single set and build index
-    config.all_colors = {*config.colors, *config.custom_colors}
-    all_colors_list = [*config.colors, *config.custom_colors]
-    config.color_index = {c: i for i, c in enumerate(all_colors_list)}
+    # Combine and sort colors alphabetically
+    all_colors_sorted = sorted({*config.colors, *config.custom_colors})
+    config.color_index = {c: i for i, c in enumerate(all_colors_sorted)}
 
     # Compile class_patterns into Pattern objects with compiled regexes
     config.APPLY_PATTERNS = [
@@ -144,9 +143,6 @@ class TailwhipConfig(dynaconf.Dynaconf):
     color_index: dict[str, int]
     shade_index: dict[str, int]
     alpha_index: dict[str, int]
-
-    # Combined colors
-    all_colors: set[str]
 
     # Compiled patterns
     APPLY_PATTERNS: list[Pattern]

@@ -15,6 +15,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - **Configuration**: Added shortcut utilities to default configuration for proper sorting
   - Added standalone `border`, `ring`, and `outline` utilities to `utility_groups`
+  - Added standalone `rounded`, `shadow`, `filter`, `blur`, `grayscale`, `invert`, `sepia`, `drop-shadow`, `transform`, and `transition` utilities
   - Shortcuts like `outline` (for `outline-1`) now sort correctly before their numbered variants (e.g., `outline`, `outline-2`, `outline-offset-2`)
 
 - **Documentation**: Fixed typo in CHANGELOG.md ("dtest" → "test")

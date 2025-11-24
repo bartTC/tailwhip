@@ -242,6 +242,7 @@ utility_groups = [
     '(via)-',
 
     # 8) Borders & Outlines & Rings & Divide
+    '(rounded)',
     '(rounded)-',
     '(border)',
     '(border)-',
@@ -252,15 +253,34 @@ utility_groups = [
     '(outline)-',
 
     # 9) Effects
+    '(shadow)',
     '(shadow)-',
     '(opacity)-',
     '(mix-blend)-',
-    '(backdrop|filter|blur|brightness|contrast|grayscale|hue-rotate|invert|saturate|sepia|drop-shadow)-',
+    '(backdrop)-',
+    '(filter)',
+    '(filter)-',
+    '(blur)',
+    '(blur)-',
+    '(brightness)-',
+    '(contrast)-',
+    '(grayscale)',
+    '(grayscale)-',
+    '(hue-rotate)-',
+    '(invert)',
+    '(invert)-',
+    '(saturate)-',
+    '(sepia)',
+    '(sepia)-',
+    '(drop-shadow)',
+    '(drop-shadow)-',
 
     # 10) Transforms
+    '(transform)',
     '(transform|scale|rotate|translate|skew|origin)-',
 
     # 11) Transitions & Animation
+    '(transition)',
     '(transition|duration|ease|delay|animate)-',
 
     # 12) Interactivity & Miscellaneous

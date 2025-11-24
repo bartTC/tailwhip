@@ -33,8 +33,8 @@ def test_stdin_mode_sorts_classes() -> None:
 
 def test_stdin_mode_with_css() -> None:
     """Test that stdin mode works with CSS @apply directives."""
-    input_css = ".btn { @apply p-4 m-2 bg-blue-500 text-white rounded; }"
-    expected_output = ".btn { @apply rounded m-2 p-4 text-white bg-blue-500; }"
+    input_css = ".btn { @apply text-white p-4 m-2 rounded bg-blue-500; }"
+    expected_output = ".btn { @apply m-2 p-4 text-white bg-blue-500 rounded; }"
 
     result = runner.invoke(app, [], input=input_css)
 

@@ -92,6 +92,8 @@ CLASS_GROUPS = (
     ],
     # Shortcuts like 'outline' for 'outline-1' are valid and come first.
     [
+        "rounded",
+        "rounded-md",
         "border",
         "border-1",
         "border-2",
@@ -103,7 +105,23 @@ CLASS_GROUPS = (
         "outline-2",
         "outline-offset-2",
         "-outline-offset-3",
-        "outline-rounded",
+        "outline-rounded"   
+        "shadow",
+        "shadow-lg",
+        "blur",
+        "blur-sm",
+        "grayscale",
+        "grayscale-0",
+        "invert",
+        "invert-0",
+        "sepia",
+        "sepia-0",
+        "drop-shadow",
+        "drop-shadow-md",
+        "transform",
+        "transform-gpu",
+        "transition",
+        "transition-all",
     ],
     # Negative values don't change order.
     [

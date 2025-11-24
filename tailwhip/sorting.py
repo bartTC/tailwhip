@@ -185,7 +185,9 @@ def sort_key(cls: str) -> tuple[tuple[tuple[int, str], ...], int, bool, str]:
     variants, base = variant_base(cls)
     variant_keys = tuple((variant_rank(v), v) for v in variants)
     is_color = is_color_utility(base)
-    return variant_keys, utility_rank(base), is_color, base
+    # Strip leading negative sign for consistent sorting (e.g., -m-4 sorts with m-4)
+    base_for_sorting = base.lstrip("-")
+    return variant_keys, utility_rank(base), is_color, base_for_sorting
 
 
 def sort_classes(class_list: list[str]) -> list[str]:

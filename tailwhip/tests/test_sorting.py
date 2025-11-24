@@ -90,6 +90,21 @@ CLASS_GROUPS = (
         "pb-8",
         "pl-16",
     ],
+    # Shortcuts like 'outline' for 'outline-1' are valid and come first.
+    [
+        "border",
+        "border-1",
+        "border-2",
+        "-border-rounded-1",
+        "border-rounded-2",
+        "ring",
+        "ring-8",
+        "outline",
+        "outline-2",
+        "outline-offset-2",
+        "-outline-offset-3",
+        "outline-rounded",
+    ],
     # Negative values don't change order.
     [
         "m-2",

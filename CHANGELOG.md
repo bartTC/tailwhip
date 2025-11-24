@@ -7,6 +7,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- **Sorting**: Negative utility classes now sort correctly alongside their positive counterparts
+  - Leading "-" is ignored for sorting purposes (e.g., `-m-4` sorts with `m-4`, `-outline-offset-2` sorts with `outline-offset-3`)
+  - Ensures consistent ordering regardless of sign
+
+- **Configuration**: Added shortcut utilities to default configuration for proper sorting
+  - Added standalone `border`, `ring`, and `outline` utilities to `utility_groups`
+  - Shortcuts like `outline` (for `outline-1`) now sort correctly before their numbered variants (e.g., `outline`, `outline-2`, `outline-offset-2`)
+
+- **Documentation**: Fixed typo in CHANGELOG.md ("dtest" → "test")
+
 ## [0.12.0] - 2025-11-23
 
 ### Added
@@ -14,7 +26,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Configuration**: Added "?" to default `skip_expressions` for JavaScript ternary operator support
   - Prevents sorting of class attributes containing ternary expressions (e.g., `condition ? "class-a" : "class-b"`)
   - Updated documentation in README.md, example.tailwhip.toml, and configuration.toml
-  - Updated test expectations to reflect new default
+  - Updated dtest expectations to reflect new default
 
 - **CI/CD**: GitHub Actions workflow for automated documentation deployment
   - Added `.github/workflows/deploy-docs.yml` for generating and deploying documentation

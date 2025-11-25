@@ -295,10 +295,10 @@ CLASS_GROUPS = (
     # Cols before rows
     [
         "flex",
-        "flex-row",
-        "flex-row-reverse",
         "flex-col",
         "flex-col-reverse",
+        "flex-row",
+        "flex-row-reverse",
         "items-stretch",
     ],
     # Gap X before Y

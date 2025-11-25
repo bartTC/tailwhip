@@ -1,16 +1,14 @@
-import random
+"""Benchmark the tailwhip sorting algorithm."""
+
 import statistics
 import time
-from typing import List
 
 from tailwhip.sorting import sort_classes
 from tailwhip.tests.test_shuffled_sorting import CLASS_GROUPS, shuffle
 
 
-def run_benchmark(run_count: int):
-    """
-    Run the benchmark `run_count` times and print the results.
-    """
+def run_benchmark(run_count: int) -> None:
+    """Run the benchmark `run_count` times and print the results."""
     timings = []
     for i in range(run_count):
         start_time = time.perf_counter()

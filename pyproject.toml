@@ -65,6 +65,7 @@ lint.ignore = [
     "ERA001", # Found commented-out code
     "FBT", # Flake Boolean Trap (don't use arg=True in functions)
     "FIX", # Line contains TODO/FIXME. Consider resolving.
+    "T201", # print found 
 
 ]
 

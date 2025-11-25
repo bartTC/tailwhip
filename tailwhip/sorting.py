@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+from functools import cache
 
 from tailwhip.configuration import config
 
@@ -71,6 +72,7 @@ def _parse_component_tokens(
     return direction, size, value, color, shade, "-".join(suffix_parts)
 
 
+@cache
 def parse_class(classname: str) -> ParsedClass:
     """
     Parse a Tailwind CSS class into its components.

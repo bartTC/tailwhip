@@ -7,6 +7,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- **Development**: Added `benchmark.py` helper script for measuring sorting performance
+
+### Changed
+
+- **Performance**: Class name parsing is now cached, making sorting ~40% faster in benchmarks
+- **Sorting**: Column utilities now consistently sort before row utilities
+  - `flex-col` before `flex-row`, `grid-flow-col` before `grid-flow-row`, `grid-flow-col-dense` before `grid-flow-row-dense`
+
+### Fixed
+
+- **Configuration**: Moved `sr-only` and `not-sr-only` back to the Accessibility section of the default prefix list
+  - They were listed after the SVG utilities, so they sorted near the end instead of right after `container`
+
 ## [0.13.0] - 2025-11-24
 
 ### Changed

@@ -31,6 +31,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Configuration**: Removed `@container` from the variants list; it is a utility, not a variant, and now sorts right after `container`
 - **Configuration**: Moved `sr-only` and `not-sr-only` back to the Accessibility section of the default prefix list
   - They were listed after the SVG utilities, so they sorted near the end instead of right after `container`
+- **Documentation**: The README listed configuration keys that no longer exist (`utility_groups`, `variant_groups`, `tailwind_colors`)
 
 ## [0.13.0] - 2025-11-24
 

@@ -212,8 +212,8 @@ For a complete list of all configuration options with detailed explanations, see
 - **Output settings**: `verbosity`, `write_mode`
 - **File discovery**: `default_globs`
 - **Template handling**: `skip_expressions`
-- **Sorting behavior**: `utility_groups`, `variant_groups`
-- **Color recognition**: `tailwind_colors`, `custom_colors`
+- **Sorting behavior**: `component_order`, `variants`, `prefixes`, `directions`, `sizes`, `numerics`, `shades`, `alphas`
+- **Color recognition**: `colors`, `custom_colors`
 - **Pattern matching**: `class_patterns` (advanced)
 
 Most users only need to customize `custom_colors` and occasionally `default_globs` 

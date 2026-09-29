@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **Python 3.15**: Added to the CI test matrix and package classifiers
 - **Development**: Added `benchmark.py` helper script for measuring sorting performance
 
 ### Changed

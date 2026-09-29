@@ -2,7 +2,7 @@
 
 [![PyPI version](https://img.shields.io/pypi/v/tailwhip.svg)](https://pypi.org/project/tailwhip/)
 [![Test](https://github.com/bartTC/tailwhip/actions/workflows/test.yml/badge.svg)](https://github.com/bartTC/tailwhip/actions/workflows/test.yml)
-[![Python Version](https://img.shields.io/badge/python-3.11%20%7C%203.12%20%7C%203.13%20%7C%203.14-blue)](https://www.python.org/downloads/)
+[![Python Version](https://img.shields.io/badge/python-3.11%20%7C%203.12%20%7C%203.13%20%7C%203.14%20%7C%203.15-blue)](https://www.python.org/downloads/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 Tailwhip is a pure Python Tailwind CSS class sorter that works with any HTML or CSS

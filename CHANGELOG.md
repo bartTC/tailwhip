@@ -11,6 +11,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **CI**: Single CI workflow replacing the Lint and Test workflows; it also runs the tailwhip pre-commit hook against a sample file, builds the sdist and wheel, checks their metadata and contents, and installs each into a clean environment to run the CLI and the packaged test suite
+- **CI**: Pushing a `v*` tag publishes the tested distributions to PyPI via trusted publishing, once every CI job has passed and the tag matches the package version
 - **Tailwind CSS 4**: The default configuration now covers the utilities and variants added in Tailwind CSS 4.0 through 4.3
   - Utilities: `@container`, `inset-shadow-*`, `inset-ring-*`, `text-shadow-*`, `mask-*`, `bg-linear-*`, `bg-radial-*`, `bg-conic-*`, `wrap-*`, `field-sizing-*`, `scheme-*`, `perspective-*`, `rotate-x/y/z-*`, `translate-z-*`, `scale-z-*`, `scale-3d`, `transform-3d`, `backface-*`, `zoom-*`, `tab-*`, `scrollbar-*`, `font-stretch-*`, `font-features-*`, `forced-color-adjust-*`, `collapse`, `caption-*`, `clear-start`, `clear-end`, `start-*`, `end-*`, `normal-nums`, `diagonal-fractions`, `stacked-fractions`
   - Logical properties: `mbs-*`, `mbe-*`, `pbs-*`, `pbe-*`, `scroll-mbs/mbe/pbs/pbe-*`, `scroll-ms/me/ps/pe-*`, `border-bs/be-*`, `inset-bs/be-*`, `min-inline-*`, `max-inline-*`, `min-block-*`, `max-block-*`

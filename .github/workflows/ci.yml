@@ -1,0 +1,167 @@
+name: CI
+
+on:
+  push:
+    branches: [ main ]
+    tags: [ 'v*' ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  lint:
+    name: Lint
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v7
+
+    - name: Install uv
+      uses: astral-sh/setup-uv@v10
+      with:
+        enable-cache: true
+
+    - name: Run ruff check
+      run: uv run --group dev ruff check .
+
+    - name: Run ruff format check
+      run: uv run --group dev ruff format --check .
+
+  test:
+    name: Test on Python ${{ matrix.python-version }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ['3.11', '3.12', '3.13', '3.14', '3.15']
+
+    steps:
+    - uses: actions/checkout@v7
+
+    - name: Install uv
+      uses: astral-sh/setup-uv@v10
+      with:
+        enable-cache: true
+
+    - name: Run tests
+      run: uv run --python=${{ matrix.python-version }} --group=dev pytest
+
+  hook:
+    name: Pre-commit hook
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v7
+
+    - name: Install uv
+      uses: astral-sh/setup-uv@v10
+
+    # Installs this repository the way pre-commit does for its users
+    # (.pre-commit-hooks.yaml) and checks that the hook sorts a sample file.
+    - name: Run the tailwhip hook against a sample file
+      run: |
+        printf '<div class="p-4 flex hover:bg-blue-500 md:flex-row"></div>\n' > sample.html
+        uvx pre-commit try-repo . tailwhip --files sample.html
+        cat sample.html
+        grep -q 'class="flex p-4 md:flex-row hover:bg-blue-500"' sample.html
+
+  build:
+    name: Build and check distributions
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v7
+
+    - name: Install uv
+      uses: astral-sh/setup-uv@v10
+      with:
+        enable-cache: true
+
+    - name: Build sdist and wheel
+      run: uv build
+
+    - name: Check that the tag matches the package version
+      if: startsWith(github.ref, 'refs/tags/v')
+      run: |
+        version="${GITHUB_REF_NAME#v}"
+        ls "dist/tailwhip-${version}.tar.gz" "dist/tailwhip-${version}-py3-none-any.whl"
+
+    - name: Check package metadata
+      run: uvx twine check --strict dist/*
+
+    - name: Check distribution contents
+      run: |
+        unzip -l dist/*.whl
+        unzip -l dist/*.whl | grep -q 'tailwhip/configuration.toml$'
+        unzip -l dist/*.whl | grep -q 'licenses/LICENSE$'
+        tar tzf dist/*.tar.gz | grep -q '/tailwhip/configuration.toml$'
+        tar tzf dist/*.tar.gz | grep -q '/LICENSE$'
+
+    - name: Upload distributions
+      uses: actions/upload-artifact@v7
+      with:
+        name: dist
+        path: dist/
+        if-no-files-found: error
+
+  install:
+    name: Install ${{ matrix.distribution }} on Python ${{ matrix.python-version }}
+    needs: build
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ['3.11', '3.15']
+        distribution: [wheel, sdist]
+
+    # No checkout on purpose: everything below must come from the built distribution.
+    steps:
+    - name: Install uv
+      uses: astral-sh/setup-uv@v10
+
+    - name: Download distributions
+      uses: actions/download-artifact@v8
+      with:
+        name: dist
+        path: dist
+
+    - name: Install into a clean environment
+      run: |
+        uv venv --python ${{ matrix.python-version }} .venv
+        case "${{ matrix.distribution }}" in
+          wheel) uv pip install --python .venv/bin/python dist/*.whl pytest ;;
+          sdist) uv pip install --python .venv/bin/python dist/*.tar.gz pytest ;;
+        esac
+
+    - name: Run the CLI
+      run: |
+        .venv/bin/tailwhip --version
+        echo '<div class="p-4 flex hover:bg-blue-500 md:flex-row">' | .venv/bin/tailwhip | tee sorted.html
+        grep -q 'class="flex p-4 md:flex-row hover:bg-blue-500"' sorted.html
+
+    - name: Run the packaged test suite
+      run: .venv/bin/python -m pytest --pyargs tailwhip
+
+  publish:
+    name: Publish to PyPI
+    needs: [lint, test, hook, build, install]
+    if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')
+    runs-on: ubuntu-latest
+    environment:
+      name: pypi
+      url: https://pypi.org/project/tailwhip/
+    permissions:
+      contents: read
+      id-token: write  # PyPI trusted publishing (OIDC), no API token needed
+
+    steps:
+    - name: Install uv
+      uses: astral-sh/setup-uv@v10
+
+    - name: Download the tested distributions
+      uses: actions/download-artifact@v8
+      with:
+        name: dist
+        path: dist
+
+    - name: Publish
+      run: uv publish --trusted-publishing always --check-url https://pypi.org/simple/tailwhip/ dist/*

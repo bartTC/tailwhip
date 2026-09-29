@@ -170,7 +170,9 @@ Use the AskUserQuestion tool to present options:
   - Review the commit: `git show`
   - Push to remote: `git push origin main --tags`
   - Create GitHub release: `gh release create v{version} --generate-notes`
-  - Build and publish to PyPI: `uv build && uv publish`
+  - PyPI publishing is automatic: pushing the `v{version}` tag runs the CI
+    workflow, which publishes once lint, tests, the pre-commit hook check and
+    the distribution checks pass. Follow it with `gh run list --workflow=ci.yml`
 
 #### Important Notes:
 - ALWAYS run tests before committing

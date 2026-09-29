@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.14.0] - 2026-09-29
+
 ### Added
 
 - **Tailwind CSS 4**: The default configuration now covers the utilities and variants added in Tailwind CSS 4.0 through 4.3
@@ -432,7 +434,8 @@ The initial alpha releases established the core functionality of Tailwhip.
 - **0.9a2** - Bug fixes, improved error handling, and type hint improvements
 - **0.9a3** - Enhanced template syntax handling and documentation updates
 
-[Unreleased]: https://github.com/bartTC/tailwhip/compare/v0.13.0...HEAD
+[Unreleased]: https://github.com/bartTC/tailwhip/compare/v0.14.0...HEAD
+[0.14.0]: https://github.com/bartTC/tailwhip/compare/v0.13.0...v0.14.0
 [0.13.0]: https://github.com/bartTC/tailwhip/compare/v0.12.0...v0.13.0
 [0.12.0]: https://github.com/bartTC/tailwhip/compare/v0.11.0...v0.12.0
 [0.11.0]: https://github.com/bartTC/tailwhip/compare/v0.10.1...v0.11.0

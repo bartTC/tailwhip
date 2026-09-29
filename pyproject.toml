@@ -7,6 +7,7 @@ authors = [
     { name = "Martin Mahner", email = "martin@mahner.org" }
 ]
 license = "MIT"
+license-files = ["LICENSE"]
 classifiers = [
     "Development Status :: 3 - Alpha",
     "Programming Language :: Python :: 3 :: Only",
@@ -36,6 +37,10 @@ Documentation = "https://barttc.github.io/tailwhip/"
 Changelog = "https://github.com/bartTC/tailwhip/blob/main/CHANGELOG.md"
 "Bug Tracker" = "https://github.com/bartTC/tailwhip/issues"
 
+[build-system]
+requires = ["uv_build>=0.12.20,<0.13.0"]
+build-backend = "uv_build"
+
 [dependency-groups]
 dev = [
     "pytest",
@@ -46,11 +51,11 @@ dev = [
 [project.scripts]
 tailwhip = "tailwhip:main"
 
-[tool.setuptools.package-data]
-tailwhip = ["configuration.toml"]
-
 [tool.uv]
 package = true
+
+[tool.uv.build-backend]
+module-root = ""
 
 [tool.ruff]
 lint.select = ["ALL"]

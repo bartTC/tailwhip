@@ -13,6 +13,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- **Packaging**: The build backend is now declared explicitly as `uv_build` instead of falling back to legacy setuptools
 - **Development**: Ruff now targets Python 3.11 to match `requires-python`; updated dev dependencies and GitHub Actions; removed the unused `pre-commit` dev dependency
 - **Performance**: Class name parsing is now cached, making sorting ~40% faster in benchmarks
 - **Sorting**: Column utilities now consistently sort before row utilities

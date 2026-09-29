@@ -20,17 +20,16 @@ Configuration Priority (lowest to highest):
 from __future__ import annotations
 
 import io
+import runpy
 import sys
-from typing import TYPE_CHECKING
+from pathlib import Path
 
 import pytest
 from typer.testing import CliRunner
 
-from tailwhip.cli import app, run
+import tailwhip
+from tailwhip.cli import app, main, run
 from tailwhip.configuration import BASE_CONFIGURATION_FILE, config, update_configuration
-
-if TYPE_CHECKING:
-    from pathlib import Path
 
 runner = CliRunner()
 
@@ -298,3 +297,30 @@ def test_no_stdin_and_no_files(
     # Should NOT show a traceback
     assert "Traceback" not in captured.out
     assert "Exception" not in captured.out
+
+
+def test_main_entrypoint_runs_app(
+    monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
+    """The console script entrypoint hands control to the Typer app."""
+    monkeypatch.setattr(sys, "argv", ["tailwhip", "--version"])
+
+    with pytest.raises(SystemExit) as exc_info:
+        main()
+
+    assert exc_info.value.code == 0
+    assert capsys.readouterr().out.startswith("tailwhip ")
+
+
+def test_python_module_entrypoint(
+    monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
+    """Running `python -m tailwhip` invokes the CLI."""
+    monkeypatch.setattr(sys, "argv", ["tailwhip", "--version"])
+    entrypoint = Path(tailwhip.__file__).parent / "__main__.py"
+
+    with pytest.raises(SystemExit) as exc_info:
+        runpy.run_path(str(entrypoint), run_name="__main__")
+
+    assert exc_info.value.code == 0
+    assert capsys.readouterr().out.startswith("tailwhip ")

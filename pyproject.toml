@@ -84,8 +84,12 @@ lint.ignore = [
 python_files = ["*.py"]
 
 [tool.coverage]
+run.source = [
+    "tailwhip",
+]
 run.omit = [
     "tailwhip/tests/*",
+    "benchmark.py",
 ]
 report.exclude_lines = [
     "pragma: no cover",

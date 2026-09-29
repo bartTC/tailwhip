@@ -228,3 +228,14 @@ def test_find_files_empty_directory() -> None:
     # Should complete successfully but return no files
     assert isinstance(results, list)
     assert len(results) == 0
+
+
+def test_find_files_glob_skips_directories() -> None:
+    """A glob that matches directories only yields the files among the matches."""
+    results = list(find_files(paths=[Path("*")]))
+
+    names = {f.name for f in results}
+    assert "index.html" in names
+    assert "templates" not in names
+    assert "empty" not in names
+    assert all(f.is_file() for f in results)

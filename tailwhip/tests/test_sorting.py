@@ -187,6 +187,12 @@ class TestParseClass:
         assert result.suffix == "[url(/img/bg.png)]"
         assert result.alpha is None
 
+    def test_variant_only_class_has_empty_prefix(self) -> None:
+        """A class consisting only of variants parses with an empty prefix."""
+        result = parse_class("hover:")
+        assert result.variants == ["hover"]
+        assert result.prefix == ""
+
 
 # =============================================================================
 # Sorting Tests - Component Order
@@ -538,3 +544,11 @@ class TestConfigurationChanges:
 
         # Now it is a colour and sorts alphabetically before "blue"
         assert sort_classes(classes) == ["text-aqua-500", "text-blue-500"]
+
+    def test_unknown_component_in_component_order_is_ignored(self) -> None:
+        """Unknown component names in component_order do not affect sorting."""
+        update_configuration(
+            {"component_order": ["variant", "prefix", "value", "bogus"]}
+        )
+
+        assert sort_classes(["p-4", "m-2", "p-2"]) == ["m-2", "p-2", "p-4"]

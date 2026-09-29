@@ -112,3 +112,27 @@ def test_write_mode_multiple_files(tmp_path: Path) -> None:
     # Both files should be sorted
     assert file1.read_text() == '<div class="m-2 p-4 bg-white"></div>'
     assert file2.read_text() == '<div class="font-bold text-lg text-gray-900"></div>'
+
+
+def test_already_sorted_file_is_reported_when_verbose(tmp_path: Path) -> None:
+    """Files that need no changes are reported and counted as skipped."""
+    sorted_file = tmp_path / "sorted.html"
+    sorted_file.write_text('<div class="m-2 p-4"></div>')
+
+    result = runner.invoke(app, [str(sorted_file), "-v"])
+
+    assert result.exit_code == 0
+    assert "Already sorted" in result.output
+    assert "1 skipped" in result.output
+
+
+def test_unreadable_file_is_skipped(tmp_path: Path) -> None:
+    """Files that are not valid UTF-8 are reported and skipped, not crashed on."""
+    binary_file = tmp_path / "binary.html"
+    binary_file.write_bytes(b'\xff\xfe<div class="p-4 m-2"></div>')
+
+    result = runner.invoke(app, [str(binary_file), "-v"])
+
+    assert result.exit_code == 0
+    assert "Unable to read" in result.output
+    assert "1 skipped" in result.output

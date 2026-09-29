@@ -14,6 +14,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Logical properties: `mbs-*`, `mbe-*`, `pbs-*`, `pbe-*`, `scroll-mbs/mbe/pbs/pbe-*`, `scroll-ms/me/ps/pe-*`, `border-bs/be-*`, `inset-bs/be-*`, `min-inline-*`, `max-inline-*`, `min-block-*`, `max-block-*`
   - Variants: `*`, `**`, `not-*`, `in-*`, `has-*`, `nth-*`, `starting`, `inert`, `user-valid`, `user-invalid`, `details-content`, `noscript`, `pointer-*`, `any-pointer-*`, `forced-colors`, `inverted-colors`, generic `aria-*`, `data-*`, `supports-*`, `group-*` and `peer-*`, container query sizes `@3xs` through `@7xl` plus `@min-*` and `@max-*`
   - Sizes `3xs`, `svw`, `lvw`, `dvw`, `svh`, `lvh`, `dvh`; directions `bs` and `be`; colors `mauve`, `mist`, `olive`, `taupe`
+- **Testing**: Added tests for the CLI entrypoints, unreadable and already-sorted files, globs matching directories, and configuration changes
 - **Python 3.15**: Added to the CI test matrix and package classifiers
 - **Development**: Added `benchmark.py` helper script for measuring sorting performance
 
@@ -21,6 +22,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - **Packaging**: The build backend is now declared explicitly as `uv_build` instead of falling back to legacy setuptools
 - **Development**: Ruff now targets Python 3.11 to match `requires-python`; updated dev dependencies and GitHub Actions; removed the unused `pre-commit` dev dependency
+- **Development**: Coverage now measures only the `tailwhip` package; `benchmark.py` and the tests are omitted
 - **Performance**: Class name parsing is now cached, making sorting ~40% faster in benchmarks
 - **Sorting**: Column utilities now consistently sort before row utilities
   - `flex-col` before `flex-row`, `grid-flow-col` before `grid-flow-row`, `grid-flow-col-dense` before `grid-flow-row-dense`

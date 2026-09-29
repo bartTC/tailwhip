@@ -7,9 +7,13 @@ import tomllib
 from dataclasses import dataclass
 from enum import IntEnum
 from pathlib import Path
+from typing import TYPE_CHECKING
 
 import dynaconf
 import rich
+
+if TYPE_CHECKING:
+    from collections.abc import Callable
 
 # Path to default configuration file
 BASE_CONFIGURATION_FILE = Path(__file__).parent / "configuration.toml"
@@ -51,6 +55,16 @@ def get_pyproject_toml_data(start_path: Path) -> Path | None:
         data = tomllib.load(f)
 
     return data.get("tool", {}).get("tailwhip")
+
+
+# Functions that drop cached results derived from the configuration. Modules that
+# memoize configuration-dependent work register their cache clearers here.
+_cache_clearers: list[Callable[[], None]] = []
+
+
+def register_cache_clearer(clear: Callable[[], None]) -> None:
+    """Register a function to call whenever the configuration changes."""
+    _cache_clearers.append(clear)
 
 
 def update_configuration(data: dict | Path) -> None:
@@ -96,6 +110,10 @@ def _rebuild_lookups() -> None:
         )
         for pattern in config.class_patterns
     ]
+
+    # Cached parse results depend on the lookups above, so drop them
+    for clear in _cache_clearers:
+        clear()
 
 
 class VerbosityLevel(IntEnum):

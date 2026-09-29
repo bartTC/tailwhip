@@ -5,7 +5,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from functools import cache
 
-from tailwhip.configuration import config
+from tailwhip.configuration import config, register_cache_clearer
 
 
 @dataclass(slots=True)
@@ -347,3 +347,8 @@ def sort_classes(class_list: list[str]) -> list[str]:
     # Deduplicate while preserving first occurrence order
     deduped = list(dict.fromkeys(class_list))
     return sorted(deduped, key=sort_key)
+
+
+# Parsed classes depend on the configuration lists, so the cache must be dropped
+# whenever the configuration changes.
+register_cache_clearer(parse_class.cache_clear)

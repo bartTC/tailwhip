@@ -7,9 +7,25 @@ based on the component_order configuration and individual component lists.
 
 from __future__ import annotations
 
-from tailwhip.configuration import update_configuration
+from typing import TYPE_CHECKING
+
+import pytest
+
+from tailwhip.configuration import BASE_CONFIGURATION_FILE, update_configuration
 from tailwhip.process import process_text
 from tailwhip.sorting import parse_class, sort_classes
+
+if TYPE_CHECKING:
+    from collections.abc import Generator
+
+
+@pytest.fixture(autouse=True)
+def reset_config() -> Generator[None]:
+    """Reset the configuration before and after each test to avoid pollution."""
+    update_configuration(BASE_CONFIGURATION_FILE)
+    yield
+    update_configuration(BASE_CONFIGURATION_FILE)
+
 
 # =============================================================================
 # Parsing Tests
@@ -502,3 +518,23 @@ class TestRealWorldExamples:
         ]
         result = sort_classes(classes)
         assert result == ["text-base", "sm:text-sm", "md:text-lg", "lg:text-xl"]
+
+
+# =============================================================================
+# Configuration Changes
+# =============================================================================
+
+
+class TestConfigurationChanges:
+    """Tests for sorting behaviour after the configuration is updated."""
+
+    def test_parse_cache_is_dropped_on_configuration_change(self) -> None:
+        """Classes parsed before a configuration change are re-parsed afterwards."""
+        # "aqua" is not a colour yet, so it sorts after the known colour utility
+        classes = ["text-blue-500", "text-aqua-500"]
+        assert sort_classes(classes) == ["text-blue-500", "text-aqua-500"]
+
+        update_configuration({"custom_colors": ["aqua"]})
+
+        # Now it is a colour and sorts alphabetically before "blue"
+        assert sort_classes(classes) == ["text-aqua-500", "text-blue-500"]

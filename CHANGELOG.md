@@ -28,6 +28,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - **Parsing**: Separators inside `[...]` or `(...)` no longer split a class apart, so `supports-[display:grid]:grid`, `has-[:checked]:p-2`, `bg-(--brand)` and `bg-[url(/img/bg.png)]` are parsed correctly
+- **Caching**: Cached class parses are dropped when the configuration changes, so updating `custom_colors` or the sorting lists after classes were parsed no longer yields stale results
 - **Configuration**: Removed `@container` from the variants list; it is a utility, not a variant, and now sorts right after `container`
 - **Configuration**: Moved `sr-only` and `not-sr-only` back to the Accessibility section of the default prefix list
   - They were listed after the SVG utilities, so they sorted near the end instead of right after `container`

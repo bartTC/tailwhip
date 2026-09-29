@@ -130,6 +130,47 @@ class TestParseClass:
         assert result.direction == "t"
         assert result.size == "lg"
 
+    def test_variant_with_bracketed_separator(self) -> None:
+        """A variant separator inside brackets belongs to the arbitrary variant."""
+        result = parse_class("supports-[display:grid]:grid")
+        assert result.variants == ["supports-[display:grid]"]
+        assert result.prefix == "grid"
+
+    def test_variant_with_bracketed_pseudo_class(self) -> None:
+        """Pseudo-class selectors inside brackets are not treated as separators."""
+        result = parse_class("has-[:checked]:p-2")
+        assert result.variants == ["has-[:checked]"]
+        assert result.prefix == "p"
+        assert result.value == "2"
+
+    def test_parenthesized_css_variable(self) -> None:
+        """CSS variable shorthand values stay a single token."""
+        result = parse_class("bg-(--brand-color)")
+        assert result.prefix == "bg"
+        assert result.suffix == "(--brand-color)"
+        assert result.color is None
+
+    def test_parenthesized_value_with_separator(self) -> None:
+        """A separator inside parentheses belongs to the value."""
+        result = parse_class("text-(length:--size)")
+        assert result.variants == []
+        assert result.prefix == "text"
+        assert result.suffix == "(length:--size)"
+
+    def test_alpha_with_parenthesized_value(self) -> None:
+        """Alpha modifier still applies after a parenthesized value."""
+        result = parse_class("bg-(--brand)/50")
+        assert result.prefix == "bg"
+        assert result.suffix == "(--brand)"
+        assert result.alpha == "50"
+
+    def test_slash_inside_brackets_is_not_alpha(self) -> None:
+        """A slash inside an arbitrary value is not an alpha modifier."""
+        result = parse_class("bg-[url(/img/bg.png)]")
+        assert result.prefix == "bg"
+        assert result.suffix == "[url(/img/bg.png)]"
+        assert result.alpha is None
+
 
 # =============================================================================
 # Sorting Tests - Component Order

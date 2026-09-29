@@ -93,8 +93,9 @@ def parse_class(classname: str) -> ParsedClass:
     if important:
         remaining = remaining[1:]
 
-    # 2. Split variants from the utility
-    parts = remaining.split(config.variant_separator)
+    # 2. Split variants from the utility. Separators inside [...] or (...)
+    #    belong to an arbitrary value, e.g. "supports-[display:grid]:grid".
+    parts = _split_top_level(remaining, config.variant_separator)
     variants = parts[:-1]  # All but the last are variants
     utility = parts[-1]  # Last part is the utility
 
@@ -103,10 +104,13 @@ def parse_class(classname: str) -> ParsedClass:
     if negated:
         utility = utility[1:]
 
-    # 4. Handle alpha value (e.g., bg-red-500/50)
+    # 4. Handle alpha value (e.g., bg-red-500/50). A "/" inside brackets belongs
+    #    to the arbitrary value, e.g. "bg-[url(/img/bg.png)]".
     alpha = None
-    if "/" in utility:
-        utility, alpha = utility.rsplit("/", 1)
+    utility_parts = _split_top_level(utility, "/")
+    if len(utility_parts) > 1:
+        alpha = utility_parts[-1]
+        utility = "/".join(utility_parts[:-1])
 
     # 5. Tokenize and parse components
     tokens = _tokenize(utility)
@@ -131,6 +135,39 @@ def parse_class(classname: str) -> ParsedClass:
     )
 
 
+def _split_top_level(text: str, separator: str) -> list[str]:
+    """
+    Split text on separator, ignoring separators nested inside [...] or (...).
+
+    Arbitrary values ("w-[calc(100%-2rem)]"), arbitrary variants
+    ("supports-[display:grid]:") and CSS variable shorthands ("bg-(--brand)")
+    contain characters that would otherwise be mistaken for separators.
+    """
+    parts: list[str] = []
+    current: list[str] = []
+    depth = 0
+    index = 0
+
+    while index < len(text):
+        char = text[index]
+        if char in "[(":
+            depth += 1
+        elif char in "])" and depth > 0:
+            depth -= 1
+
+        if depth == 0 and text.startswith(separator, index):
+            parts.append("".join(current))
+            current = []
+            index += len(separator)
+            continue
+
+        current.append(char)
+        index += 1
+
+    parts.append("".join(current))
+    return parts
+
+
 def _tokenize(utility: str) -> list[str]:
     """
     Split a utility string into tokens, keeping arbitrary values together.
@@ -139,30 +176,10 @@ def _tokenize(utility: str) -> list[str]:
         "border-t-2" -> ["border", "t", "2"]
         "w-[100px]" -> ["w", "[100px]"]
         "grid-cols-[200px_1fr]" -> ["grid", "cols", "[200px_1fr]"]
+        "bg-(--brand-color)" -> ["bg", "(--brand-color)"]
 
     """
-    tokens = []
-    current = ""
-    bracket_depth = 0
-
-    for char in utility:
-        if char == "[":
-            bracket_depth += 1
-            current += char
-        elif char == "]":
-            bracket_depth -= 1
-            current += char
-        elif char == "-" and bracket_depth == 0:
-            if current:
-                tokens.append(current)
-            current = ""
-        else:
-            current += char
-
-    if current:
-        tokens.append(current)
-
-    return tokens
+    return [token for token in _split_top_level(utility, "-") if token]
 
 
 def _is_base_utility(parsed: ParsedClass) -> bool:

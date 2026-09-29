@@ -38,7 +38,6 @@ Changelog = "https://github.com/bartTC/tailwhip/blob/main/CHANGELOG.md"
 
 [dependency-groups]
 dev = [
-    "pre-commit",
     "pytest",
     "pytest-cov",
     "ruff",
@@ -54,11 +53,11 @@ tailwhip = ["configuration.toml"]
 package = true
 
 [tool.ruff]
-target-version = "py39"
 lint.select = ["ALL"]
 lint.ignore = [
     # Valid exclusions.
     "COM812", # Conflicts with ruff format
+    "CPY001", # Missing copyright notice
     "E501", # Line too long (>88)
     "D203", # incorrect-blank-line-before-class (conflicts with D211)
     "D212", # Don't require summary on first line

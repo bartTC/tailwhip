@@ -3,13 +3,13 @@
 from __future__ import annotations
 
 import re
+import tomllib
 from dataclasses import dataclass
 from enum import IntEnum
 from pathlib import Path
 
 import dynaconf
 import rich
-import tomllib
 
 # Path to default configuration file
 BASE_CONFIGURATION_FILE = Path(__file__).parent / "configuration.toml"

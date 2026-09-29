@@ -300,7 +300,7 @@ class TestNegatedClasses:
     def test_negated_margin_order(self) -> None:
         """Negated margins maintain proper order."""
         result = sort_classes(["-mb-4", "mt-4", "-ml-4"])
-        assert result in (["mt-4", "-mb-4", "-ml-4"],)
+        assert result == ["mt-4", "-mb-4", "-ml-4"]
 
 
 class TestImportantClasses:

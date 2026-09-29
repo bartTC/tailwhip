@@ -43,7 +43,7 @@ def main() -> None:
 
 
 @app.command(context_settings={"help_option_names": ["-h", "--help"]})
-def run(  # noqa: PLR0913
+def run(  # noqa: PLR0913, PLR0917
     paths: Annotated[
         list[Path] | None,
         typer.Argument(

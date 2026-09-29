@@ -205,6 +205,22 @@ class TestSortingByVariant:
         result = sort_classes(["lg:hover:p-4", "sm:hover:p-4"])
         assert result == ["sm:hover:p-4", "lg:hover:p-4"]
 
+    def test_generic_aria_and_data_variants(self) -> None:
+        """Any aria-* or data-* variant sorts with the aria/data group."""
+        result = sort_classes(
+            ["data-loading:opacity-50", "aria-busy:animate-spin", "hover:p-2"]
+        )
+        assert result == [
+            "hover:p-2",
+            "aria-busy:animate-spin",
+            "data-loading:opacity-50",
+        ]
+
+    def test_descendant_variants_last(self) -> None:
+        """The * and ** descendant variants sort after pseudo-elements."""
+        result = sort_classes(["**:text-sm", "*:p-2", "before:block"])
+        assert result == ["before:block", "*:p-2", "**:text-sm"]
+
 
 class TestSortingByPrefix:
     """Tests for prefix-based sorting."""

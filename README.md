@@ -37,7 +37,9 @@ requiring complicated setup.
 
 ## Usage
 
-Tailwhip requires Python 3.11 or later.
+Tailwhip requires Python 3.11 or later. The default sort order covers the
+utilities and variants of Tailwind CSS 4.3 and remains compatible with Tailwind
+CSS 3 class names.
 
 ```bash
 $ uvx tailwhip [options] [filepath...]

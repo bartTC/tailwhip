@@ -4,17 +4,15 @@ from __future__ import annotations
 
 import sys
 import time
-from importlib import metadata
 from pathlib import Path
 from typing import Annotated
 
 import typer
-from rich.console import Console
 
 from tailwhip.configuration import (
-    CONSOLE_THEME,
     VerbosityLevel,
     config,
+    create_console,
     get_pyproject_toml_data,
     update_configuration,
 )
@@ -25,6 +23,8 @@ from tailwhip.process import process_text
 def version_callback(value: bool) -> None:
     """Print version and exit."""
     if value:
+        from importlib import metadata  # noqa: PLC0415
+
         version = metadata.version("tailwhip")
         typer.echo(f"tailwhip {version}")
         raise typer.Exit
@@ -149,20 +149,20 @@ def run(  # noqa: PLR0913, PLR0917
         }
     )
 
-    # Setup helper tools ---------------------------------------------------------------
-
-    config.console = Console(quiet=quiet, theme=CONSOLE_THEME)
-
     # Handle stdin mode ----------------------------------------------------------------
 
-    if not paths:
-        # Check if stdin is being piped (not a TTY)
-        if not sys.stdin.isatty():
-            input_text = sys.stdin.read()
-            output_text = process_text(input_text)
-            sys.stdout.write(output_text)
-            return
+    # Without paths and with stdin being piped (not a TTY), process stdin to stdout
+    if not paths and not sys.stdin.isatty():
+        input_text = sys.stdin.read()
+        output_text = process_text(input_text)
+        sys.stdout.write(output_text)
+        return
 
+    # Setup helper tools ---------------------------------------------------------------
+
+    config.console = create_console(quiet=quiet)
+
+    if not paths:
         # No paths and no piped input
         config.console.print(
             "[red]Error: No paths provided. Provide file paths or pipe content to stdin.[/red]"

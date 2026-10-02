@@ -4,29 +4,41 @@ from __future__ import annotations
 
 import re
 import tomllib
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from enum import IntEnum
 from pathlib import Path
 from typing import TYPE_CHECKING
 
 import dynaconf
-import rich
 
 if TYPE_CHECKING:
     from collections.abc import Callable
 
+    import rich.console
+
 # Path to default configuration file
 BASE_CONFIGURATION_FILE = Path(__file__).parent / "configuration.toml"
 
-# Console theme for rich.Console output
-CONSOLE_THEME = rich.theme.Theme(
-    {
-        "important": "white on deep_pink4",
-        "highlight": "yellow1",
-        "filename": "white",
-        "bold": "sky_blue1",
-    }
-)
+# Styles for the rich.Console output
+CONSOLE_STYLES = {
+    "important": "white on deep_pink4",
+    "highlight": "yellow1",
+    "filename": "white",
+    "bold": "sky_blue1",
+}
+
+
+def create_console(*, quiet: bool) -> rich.console.Console:
+    """
+    Create the console used for all output.
+
+    Rich is imported here rather than at module level: importing it is a
+    noticeable part of the startup time, and stdin mode never prints through it.
+    """
+    from rich.console import Console  # noqa: PLC0415
+    from rich.theme import Theme  # noqa: PLC0415
+
+    return Console(quiet=quiet, theme=Theme(CONSOLE_STYLES))
 
 
 @dataclass
@@ -36,6 +48,33 @@ class Pattern:
     name: str
     regex: re.Pattern
     template: str
+
+
+@dataclass(slots=True)
+class Lookups:
+    """
+    Plain lookup tables derived from the configuration lists.
+
+    Values stored on the Dynaconf settings object are wrapped in node types whose
+    membership tests scan every key, far too slow for the sorting hot path. These
+    plain structures are refreshed in place by _rebuild_lookups() whenever the
+    configuration changes, so modules can keep a reference to the single instance.
+    """
+
+    variant_separator: str = ":"
+    skip_expressions: tuple[str, ...] = ()
+    component_order: tuple[str, ...] = ()
+    variant_index: dict[str, int] = field(default_factory=dict)
+    prefix_index: dict[str, int] = field(default_factory=dict)
+    direction_index: dict[str, int] = field(default_factory=dict)
+    size_index: dict[str, int] = field(default_factory=dict)
+    value_index: dict[str, int] = field(default_factory=dict)
+    color_index: dict[str, int] = field(default_factory=dict)
+    shade_index: dict[str, int] = field(default_factory=dict)
+    alpha_index: dict[str, int] = field(default_factory=dict)
+
+
+lookups = Lookups()
 
 
 def get_pyproject_toml_data(start_path: Path) -> Path | None:
@@ -87,19 +126,24 @@ def update_configuration(data: dict | Path) -> None:
 
 
 def _rebuild_lookups() -> None:
-    """Rebuild lookup dictionaries and compile patterns."""
+    """Rebuild the lookup tables and compile patterns."""
+    # Plain copies of the settings read for every class or attribute
+    lookups.variant_separator = config.variant_separator
+    lookups.skip_expressions = tuple(config.skip_expressions)
+    lookups.component_order = tuple(config.component_order)
+
     # Build lookup dicts for O(1) index access
-    config.variant_index = {v: i for i, v in enumerate(config.variants)}
-    config.prefix_index = {p: i for i, p in enumerate(config.prefixes)}
-    config.direction_index = {d: i for i, d in enumerate(config.directions)}
-    config.size_index = {s: i for i, s in enumerate(config.sizes)}
-    config.value_index = {v: i for i, v in enumerate(config.numerics)}
-    config.shade_index = {s: i for i, s in enumerate(config.shades)}
-    config.alpha_index = {a: i for i, a in enumerate(config.alphas)}
+    lookups.variant_index = {v: i for i, v in enumerate(config.variants)}
+    lookups.prefix_index = {p: i for i, p in enumerate(config.prefixes)}
+    lookups.direction_index = {d: i for i, d in enumerate(config.directions)}
+    lookups.size_index = {s: i for i, s in enumerate(config.sizes)}
+    lookups.value_index = {v: i for i, v in enumerate(config.numerics)}
+    lookups.shade_index = {s: i for i, s in enumerate(config.shades)}
+    lookups.alpha_index = {a: i for i, a in enumerate(config.alphas)}
 
     # Combine and sort colors alphabetically
     all_colors_sorted = sorted({*config.colors, *config.custom_colors})
-    config.color_index = {c: i for i, c in enumerate(all_colors_sorted)}
+    lookups.color_index = {c: i for i, c in enumerate(all_colors_sorted)}
 
     # Compile class_patterns into Pattern objects with compiled regexes
     config.APPLY_PATTERNS = [
@@ -111,7 +155,7 @@ def _rebuild_lookups() -> None:
         for pattern in config.class_patterns
     ]
 
-    # Cached parse results depend on the lookups above, so drop them
+    # Cached results derived from the configuration are stale now, so drop them
     for clear in _cache_clearers:
         clear()
 
@@ -151,16 +195,6 @@ class TailwhipConfig(dynaconf.Dynaconf):
     custom_colors: list[str]
     shades: list[str]
     alphas: list[str]
-
-    # Lookup dictionaries (built at runtime for O(1) access)
-    variant_index: dict[str, int]
-    prefix_index: dict[str, int]
-    direction_index: dict[str, int]
-    size_index: dict[str, int]
-    value_index: dict[str, int]
-    color_index: dict[str, int]
-    shade_index: dict[str, int]
-    alpha_index: dict[str, int]
 
     # Compiled patterns
     APPLY_PATTERNS: list[Pattern]

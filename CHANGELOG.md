@@ -7,8 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- **Performance**: Sorting is 2 to 5 times faster on large codebases. The lookup tables used while parsing a class are no longer read through Dynaconf, whose containers scan every key on each membership test; they live in a plain `Lookups` object that is rebuilt whenever the configuration changes
+  - Sort keys are cached per class name and built from a precomputed component table instead of an if/elif chain; sorted class attribute values are cached as well (bounded to 8,192 entries). The separate parse cache is no longer needed
+  - Splitting a class without arbitrary values uses `str.split` instead of a character loop
+  - A dry run over 1,650 already sorted files drops from 2.3s to 0.4s; three real projects run 2.1 to 2.6 times faster
+- **Performance**: Faster startup for stdin and `--version`. Rich, wcmatch, difflib and the package metadata lookup are imported only when needed, and the console is created only in file mode (one file on stdin: 88ms to 64ms)
+
 ### Fixed
 
+- **Reliability**: Runs longer than 60 seconds no longer abort with a `TimeoutError`; the thread pool waited with a total timeout instead of a per-file one
 - **CI**: The documentation workflow no longer runs for pull requests; GitHub Pages' environment protection rejects deployments from anything but `main`, so every pull request showed a failed check
 
 ## [0.14.0] - 2026-09-29

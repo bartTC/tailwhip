@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- **CI**: The documentation workflow no longer runs for pull requests; GitHub Pages' environment protection rejects deployments from anything but `main`, so every pull request showed a failed check
+
 ## [0.14.0] - 2026-09-29
 
 ### Added

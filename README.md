@@ -24,11 +24,13 @@ ignores class attributes that contain template syntax.
 
 [1]: https://github.com/tailwindlabs/prettier-plugin-tailwindcss
 [2]: https://github.com/davidodenwald/prettier-plugin-jinja-template
+[3]: https://github.com/bartTC/tailwhip/blob/main/tailwhip/configuration.toml
 
 How it works:
 
 1. It finds all `class=""` attributes and `@apply` directives in the given files.
-2. It sorts the contained classes according to the official Tailwind CSS class order.
+2. It sorts the contained classes into a consistent order modeled on Tailwind CSS,
+   defined in the [default configuration][3] and adjustable per project.
 3. If a class attribute contains template syntax (e.g., `{{ ... }}` or `{% ... %}`),
    Tailwhip leaves it untouched.
 
@@ -68,7 +70,7 @@ $ echo '<div class="p-4 m-2 bg-white">' | uvx tailwhip
 $ cat template.html | tailwhip > sorted.html
 ```
 
-You can also install it with pip and use it as a Python library:
+You can also install it with pip and run it as a command or Python module:
 
 ```bash
 pip install tailwhip
@@ -87,7 +89,7 @@ Tailwhip works as a STDIN/STDOUT filter, making it easy to integrate with text e
 
 ```bash
 tailwhip < file.html
-cat file.html | tailwhip > file.html
+cat file.html | tailwhip > sorted.html
 ```
 
 **Vim/Neovim:**
@@ -121,10 +123,10 @@ Add a `.pre-commit-config.yaml` file to your project:
 
 ```yaml
 repos:
- - repo: https://github.com/bartTC/tailwhip
-   rev: v0.11  # Use the latest release tag
-   hooks:
-     - id: tailwhip
+  - repo: https://github.com/bartTC/tailwhip
+    rev: v0.11  # Use the latest release tag
+    hooks:
+      - id: tailwhip
 ```
 
 ### Customizing File Types
@@ -151,7 +153,7 @@ Add a `[tool.tailwhip]` section to your project's `pyproject.toml`:
 
 ```toml
 [tool.tailwhip]
-# Increase verbosity to see detailed changes
+# 2 also lists files that are already sorted, 3 adds a diff of each change
 verbosity = 2
 
 # Customize file patterns to include JSX/TSX files
@@ -215,6 +217,7 @@ For a complete list of all configuration options with detailed explanations, see
 - **Output settings**: `verbosity`, `write_mode`
 - **File discovery**: `default_globs`
 - **Template handling**: `skip_expressions`
+- **Variant recognition**: `variant_separator`
 - **Sorting behavior**: `component_order`, `variants`, `prefixes`, `directions`, `sizes`, `numerics`, `shades`, `alphas`
 - **Color recognition**: `colors`, `custom_colors`
 - **Pattern matching**: `class_patterns` (advanced)

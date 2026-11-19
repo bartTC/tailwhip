@@ -30,6 +30,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - **Reliability**: Runs longer than 60 seconds no longer abort with a `TimeoutError`; the thread pool waited with a total timeout instead of a per-file one
 - **CI**: The documentation workflow referenced the output of a step that did not exist (`steps.deployment`), found by actionlint
+- **Documentation**: README fixes: the shell example `cat file.html | tailwhip > file.html` emptied the file instead of sorting it (it now writes to `sorted.html`); the `verbosity = 2` example claimed to show detailed changes, while 2 lists already sorted files and 3 shows diffs; `variant_separator` was missing from the list of configuration options; the pre-commit example was mis-indented and pointed at v0.11; pip installs a command, not a library API; the README no longer calls the sort order the official Tailwind CSS order, it is Tailwhip's own configurable order
+- **CLI**: `--help` described `-v` as showing changes; it lists files that are already sorted as well
 - **Documentation**: Markdown files cleaned up for markdownlint: blank lines around headings, lists and code blocks, no `$` prompts in shell examples, a stray code fence in the README
 - **CI**: The documentation workflow no longer runs for pull requests; GitHub Pages' environment protection rejects deployments from anything but `main`, so every pull request showed a failed check
 

@@ -83,7 +83,7 @@ def run(  # noqa: PLR0913, PLR0917
             "--verbose",
             "-v",
             count=True,
-            help="Increase output verbosity (-v: changes, -vv: diff, -vvv: debug).",
+            help="Increase output verbosity (-v: also list unchanged files, -vv: diff, -vvv: debug).",
         ),
     ] = 0,
     custom_configuration_file: Annotated[

@@ -2,9 +2,10 @@
 
 from __future__ import annotations
 
+from functools import lru_cache
 from typing import TYPE_CHECKING
 
-from tailwhip.configuration import config
+from tailwhip.configuration import config, lookups, register_cache_clearer
 from tailwhip.sorting import sort_classes
 
 if TYPE_CHECKING:
@@ -41,7 +42,29 @@ def split_classes(s: str) -> list[str]:
         []
 
     """
-    return s.strip().split()
+    return s.split()
+
+
+@lru_cache(maxsize=8192)
+def _sort_class_string(classes_str: str) -> str | None:
+    """
+    Sort the classes of a class attribute value, or return None to leave it as is.
+
+    The same attribute values repeat all over a codebase, so results are cached.
+    Values containing a template expression, or no classes at all, yield None.
+    """
+    # Skip if a template expression appears inside the class attribute
+    for skip_expr in lookups.skip_expressions:
+        if skip_expr in classes_str:
+            return None
+
+    classes = split_classes(classes_str)
+
+    # Skip if no classes were found
+    if not classes:
+        return None
+
+    return " ".join(sort_classes(classes))
 
 
 def process_pattern(match: re.Match[str], template: str) -> str:
@@ -74,24 +97,16 @@ def process_pattern(match: re.Match[str], template: str) -> str:
         >>> # Output: class="text-{{ color }}-500 flex"  # Unchanged
 
     """
-    classes_str = match.group("classes")
+    sorted_classes = _sort_class_string(match.group("classes"))
 
-    # Skip if a template expression appears inside the class attribute
-    if any(skip_expr in classes_str for skip_expr in config.skip_expressions):
+    # Skip template expressions and empty attributes
+    if sorted_classes is None:
         return match.group(0)
-
-    classes = split_classes(classes_str)
-
-    # Skip if no classes were found
-    if not classes:
-        return match.group(0)
-
-    sorted_classes = sort_classes(classes)
 
     # Get all named groups from the match as context
     context = match.groupdict()
     # Override 'classes' with sorted version
-    context["classes"] = " ".join(sorted_classes)
+    context["classes"] = sorted_classes
 
     # Use template to reconstruct
     return template.format(**context)
@@ -129,3 +144,8 @@ def process_text(text: str) -> str:
             text,
         )
     return text
+
+
+# Sorted class strings depend on the configuration, so the cache must be dropped
+# whenever the configuration changes.
+register_cache_clearer(_sort_class_string.cache_clear)

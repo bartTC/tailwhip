@@ -2,21 +2,18 @@
 
 from __future__ import annotations
 
-import difflib
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from dataclasses import dataclass
 from pathlib import Path
 from typing import TYPE_CHECKING
-
-from rich.padding import Padding
-from rich.syntax import Syntax
-from wcmatch import glob
 
 from tailwhip.configuration import VerbosityLevel, config
 from tailwhip.process import process_text
 
 if TYPE_CHECKING:
     from collections.abc import Generator, Iterable
+
+    from rich.syntax import Syntax
 
 
 @dataclass(slots=True)
@@ -55,6 +52,9 @@ def find_files(*, paths: list[Path]) -> Generator[Path]:
         [PosixPath('home.html'), PosixPath('static/app.css')]
 
     """
+    # Imported on demand: stdin mode never needs it, and it is slow to import
+    from wcmatch import glob  # noqa: PLC0415
+
     seen = set()
     flags = glob.GLOBSTAR | glob.BRACE | glob.EXTGLOB | glob.DOTGLOB
 
@@ -86,6 +86,11 @@ def find_files(*, paths: list[Path]) -> Generator[Path]:
 
 def get_diff(path: Path, old_text: str, new_text: str) -> Syntax:
     """Show a nice diff using Rich."""
+    # Imported on demand: only the diff verbosity needs them
+    import difflib  # noqa: PLC0415
+
+    from rich.syntax import Syntax  # noqa: PLC0415
+
     # Create a text diff between old and new text
     diff = difflib.unified_diff(
         old_text.splitlines(),
@@ -143,6 +148,8 @@ def _process_file(f: Path) -> FileResult:
             config.console.print(f"[dim]Would update[/dim] [filename]{f}[/filename]")
 
         if config.verbosity >= VerbosityLevel.DIFF:
+            from rich.padding import Padding  # noqa: PLC0415
+
             diff = get_diff(f, old_text, new_text)
             config.console.print(Padding(diff, (1, 0, 1, 4)))
 
@@ -180,7 +187,7 @@ def apply_changes(*, targets: Iterable[Path]) -> tuple[bool, int, int]:
     with ThreadPoolExecutor() as executor:
         futures = [executor.submit(_process_file, f) for f in targets]
 
-        for future in as_completed(futures, timeout=60):
+        for future in as_completed(futures):
             found_any = True
             result = future.result()
 

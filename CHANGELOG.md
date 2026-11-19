@@ -7,6 +7,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- **Tailwind CSS 4**: The default configuration now covers `contain-*` (sorted with layout, after isolation) and `break-normal` (with the other word break utilities). Both previously sorted as unknown classes, ahead of every Tailwind class
 ### Changed
 
 - **Performance**: Sorting is 2 to 5 times faster on large codebases. The lookup tables used while parsing a class are no longer read through Dynaconf, whose containers scan every key on each membership test; they live in a plain `Lookups` object that is rebuilt whenever the configuration changes

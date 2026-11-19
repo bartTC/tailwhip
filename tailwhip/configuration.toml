@@ -305,6 +305,9 @@ prefixes = [
     "isolate",
     "isolation-auto",
 
+    # Containment
+    "contain",
+
     # Positioning
     "static",
     "fixed",
@@ -495,6 +498,7 @@ prefixes = [
     "indent",
     "tab",
     "whitespace",
+    "break-normal",
     "break-words",
     "break-all",
     "break-keep",

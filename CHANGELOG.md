@@ -12,6 +12,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Tailwind CSS 4**: The default configuration now covers `contain-*` (sorted with layout, after isolation) and `break-normal` (with the other word break utilities). Both previously sorted as unknown classes, ahead of every Tailwind class
 - **Development**: Added `check_tailwind_coverage.py`, which installs the `tailwindcss` npm package, lists every utility and variant from its design system and reports those the default configuration does not cover. Exits with status 1 on gaps; needs Node.js and npm
 - **CI**: Weekly Tailwind coverage workflow that runs `check_tailwind_coverage.py` against the latest Tailwind CSS release. It opens an issue labelled `tailwind-coverage` when classes or variants are missing, overwrites that issue with the current report on later runs, and closes it once everything is covered
+- **Development**: Added a `.pre-commit-config.yaml` that checks YAML and TOML syntax, runs ruff check and ruff format, lints Markdown with markdownlint-cli2 (configured in `.markdownlint-cli2.yaml`) and lints the GitHub Actions workflows with actionlint. Run `pre-commit install` once to enable it; `runtests.sh` runs every hook against all files after the test suite
 
 ### Changed
 
@@ -24,6 +25,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - **Reliability**: Runs longer than 60 seconds no longer abort with a `TimeoutError`; the thread pool waited with a total timeout instead of a per-file one
+- **CI**: The documentation workflow referenced the output of a step that did not exist (`steps.deployment`), found by actionlint
 - **Documentation**: Markdown files cleaned up for markdownlint: blank lines around headings, lists and code blocks, no `$` prompts in shell examples, a stray code fence in the README
 - **CI**: The documentation workflow no longer runs for pull requests; GitHub Pages' environment protection rejects deployments from anything but `main`, so every pull request showed a failed check
 

@@ -1,0 +1,9 @@
+config:
+  # Changelog entries and prose paragraphs are kept on one line.
+  MD013: false
+  # Keep a Changelog repeats "Added", "Fixed", ... under every release.
+  MD024:
+    siblings_only: true
+  # The Claude Code command files start with front matter and a prompt, not a
+  # heading.
+  MD041: false

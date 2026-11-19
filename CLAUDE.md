@@ -13,18 +13,22 @@ Tailwhip is a Tailwind CSS class sorting utility that helps maintain consistent 
 When you make changes to the codebase, **always** follow these steps in order:
 
 1. **Run the test suite FIRST**
+
    ```bash
    .venv/bin/python -m pytest
    ```
+
    - All tests must pass before proceeding
    - If tests fail, fix the issues before continuing
    - DO NOT proceed to the next step until tests pass
 
 2. **Run code quality checks**
+
    ```bash
    ruff check
    ruff format --check
    ```
+
    - Code must pass both linting and formatting checks
    - If ruff check fails, fix the linting issues
    - If ruff format --check fails, run `ruff format` to fix formatting
@@ -58,7 +62,7 @@ When you make changes to the codebase, **always** follow these steps in order:
 
 ## Project Structure
 
-```
+```text
 tailwhip/
 ├── tailwhip/
 │   ├── files.py          # File processing and discovery
@@ -99,12 +103,14 @@ Report the results clearly after each step. If any check fails, stop and explain
 Add a changelog entry to CHANGELOG.md for the most recent changes.
 
 IMPORTANT: Before adding a changelog entry, ensure:
+
 1. Tests have passed (.venv/bin/python -m pytest)
 2. Linting has passed (ruff check && ruff format --check)
 
 If tests or linting have not been run yet, run them first and ensure they pass.
 
 Then add the changelog entry:
+
 1. Review the unstaged git changes to understand what changed
 2. Add an appropriate entry to the [Unreleased] section
 3. Follow the Keep a Changelog format
@@ -116,9 +122,10 @@ Then add the changelog entry:
 
 Create a new release for Tailwhip by automating the entire release workflow.
 
-#### Workflow Steps:
+#### Workflow Steps
 
 ##### 1. Version Analysis
+
 - Read the current version from `pyproject.toml`
 - Parse the version (e.g., "0.9.3" → major.minor.patch)
 - Calculate suggestions:
@@ -127,20 +134,25 @@ Create a new release for Tailwhip by automating the entire release workflow.
   - **Major**: Increment major (e.g., 0.9.3 → 1.0.0) - Breaking changes
 
 ##### 2. Ask User for Version
+
 Use the AskUserQuestion tool to present options:
+
 - Show current version clearly
 - Offer patch, minor, and major version options
 - Include "Custom" option for manual entry
 - Explain what each version type means
 
 ##### 3. Update pyproject.toml
+
 - Replace the version line in pyproject.toml with the new version
 - Show the diff
 
 ##### 4. Run uv sync
+
 - Execute `uv sync` to update lock file with new version
 
 ##### 5. Update CHANGELOG.md
+
 - Move the `[Unreleased]` section to a new version section with today's date
 - Format: `## [X.Y.Z] - YYYY-MM-DD`
 - Ask the user to verify that the date is correct.
@@ -151,20 +163,24 @@ Use the AskUserQuestion tool to present options:
   - Add new version link comparing from previous version to new version
 
 ##### 6. Run Tests and Linting
+
 - Run pytest to ensure everything passes
 - Run ruff check and format check
 - DO NOT proceed if any checks fail
 
 ##### 7. Create Git Commit
+
 - Stage pyproject.toml, CHANGELOG.md, and uv.lock
 - Create commit message: "Release v{version}"
 - Include Claude co-authorship
 
 ##### 8. Create Git Tag
+
 - Create annotated git tag: `v{version}`
 - Tag message: "Release version {version}"
 
 ##### 9. Summary
+
 - Show what was done
 - Remind user to:
   - Review the commit: `git show`
@@ -174,7 +190,8 @@ Use the AskUserQuestion tool to present options:
     workflow, which publishes once lint, tests, the pre-commit hook check and
     the distribution checks pass. Follow it with `gh run list --workflow=ci.yml`
 
-#### Important Notes:
+#### Important Notes
+
 - ALWAYS run tests before committing
 - ALWAYS verify CHANGELOG.md formatting is correct
 - Show clear output at each step
@@ -183,6 +200,7 @@ Use the AskUserQuestion tool to present options:
 ## Permissions
 
 The following commands are pre-approved for execution without user confirmation:
+
 - `python -m pytest` and `.venv/bin/python -m pytest`
 - `uv pip install`, `uv pip list`, `uv sync`
 - `python` and `.venv/bin/python`

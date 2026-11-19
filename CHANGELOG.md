@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - **Tailwind CSS 4**: The default configuration now covers `contain-*` (sorted with layout, after isolation) and `break-normal` (with the other word break utilities). Both previously sorted as unknown classes, ahead of every Tailwind class
+
 ### Changed
 
 - **Performance**: Sorting is 2 to 5 times faster on large codebases. The lookup tables used while parsing a class are no longer read through Dynaconf, whose containers scan every key on each membership test; they live in a plain `Lookups` object that is rebuilt whenever the configuration changes
@@ -21,6 +22,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - **Reliability**: Runs longer than 60 seconds no longer abort with a `TimeoutError`; the thread pool waited with a total timeout instead of a per-file one
+- **Documentation**: Markdown files cleaned up for markdownlint: blank lines around headings, lists and code blocks, no `$` prompts in shell examples, a stray code fence in the README
 - **CI**: The documentation workflow no longer runs for pull requests; GitHub Pages' environment protection rejects deployments from anything but `main`, so every pull request showed a failed check
 
 ## [0.14.0] - 2026-09-29
@@ -106,6 +108,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Changed list comprehension to generator expression in diff output
 
   Benchmark results (median of 10 pytest runs):
+
   | Before | After | Improvement |
   |--------|-------|-------------|
   | 1.81s  | 0.99s | 45% faster  |

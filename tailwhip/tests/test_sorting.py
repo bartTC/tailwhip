@@ -262,6 +262,18 @@ class TestSortingByPrefix:
         result = sort_classes(["p-4", "m-4"])
         assert result == ["m-4", "p-4"]
 
+    def test_contain_after_isolation(self) -> None:
+        """Containment utilities sort with layout, after isolation."""
+        assert parse_class("contain-inline-size").prefix == "contain"
+        result = sort_classes(["p-4", "contain-paint", "isolate", "block"])
+        assert result == ["block", "isolate", "contain-paint", "p-4"]
+
+    def test_break_normal_with_word_break(self) -> None:
+        """break-normal is a word break utility, not an unknown class."""
+        assert parse_class("break-normal").prefix == "break-normal"
+        result = sort_classes(["break-all", "whitespace-nowrap", "break-normal"])
+        assert result == ["whitespace-nowrap", "break-normal", "break-all"]
+
     def test_prefix_alphabetical_for_unknown(self) -> None:
         """Unknown prefixes are sorted alphabetically."""
         result = sort_classes(["zzz-custom", "aaa-custom"])

@@ -734,6 +734,7 @@ CLASS_GROUPS = (
     ],
     # Word break
     [
+        "break-normal",
         "break-words",
         "break-all",
         "break-keep",

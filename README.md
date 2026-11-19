@@ -124,7 +124,7 @@ Add a `.pre-commit-config.yaml` file to your project:
 ```yaml
 repos:
   - repo: https://github.com/bartTC/tailwhip
-    rev: v0.11  # Use the latest release tag
+    rev: v0.15.0  # Use the latest release tag
     hooks:
       - id: tailwhip
 ```
@@ -136,7 +136,7 @@ To include additional file types (like JSX, TSX, or template files), add a `file
 ```yaml
 repos:
   - repo: https://github.com/bartTC/tailwhip
-    rev: v0.11
+    rev: v0.15.0
     hooks:
       - id: tailwhip
         files: \.(html|htm|css|jsx|tsx|liquid)$

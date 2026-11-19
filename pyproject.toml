@@ -90,6 +90,7 @@ run.source = [
 run.omit = [
     "tailwhip/tests/*",
     "benchmark.py",
+    "check_tailwind_coverage.py",
 ]
 report.exclude_lines = [
     "pragma: no cover",

@@ -10,6 +10,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - **Tailwind CSS 4**: The default configuration now covers `contain-*` (sorted with layout, after isolation) and `break-normal` (with the other word break utilities). Both previously sorted as unknown classes, ahead of every Tailwind class
+- **Development**: Added `check_tailwind_coverage.py`, which installs the `tailwindcss` npm package, lists every utility and variant from its design system and reports those the default configuration does not cover. Exits with status 1 on gaps; needs Node.js and npm
+- **CI**: Weekly Tailwind coverage workflow that runs `check_tailwind_coverage.py` against the latest Tailwind CSS release. It opens an issue labelled `tailwind-coverage` when classes or variants are missing, overwrites that issue with the current report on later runs, and closes it once everything is covered
 
 ### Changed
 

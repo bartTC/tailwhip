@@ -1,0 +1,68 @@
+name: Tailwind coverage
+
+# Checks every week whether the latest Tailwind CSS release has utilities or
+# variants that the default configuration does not cover. Keeps a single open
+# issue labelled "tailwind-coverage": opens it when something is missing,
+# overwrites its body with the current report on later runs, and closes it
+# once everything is covered again.
+
+on:
+  schedule:
+    - cron: '0 6 * * 6'  # Saturdays, 06:00 UTC
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  coverage:
+    name: Check Tailwind CSS coverage
+    # Scheduled runs always use main; this also keeps manual runs started on
+    # another branch from opening or closing the issue.
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v7
+
+    - name: Install uv
+      uses: astral-sh/setup-uv@c18668ad3cf93ea998bef934396af7bb5c839dc7 # v10.2.0
+      with:
+        enable-cache: true
+
+    # Exit status 1 with a report means classes or variants are missing; exit
+    # status 1 without a report means the check itself failed (npm, Node.js).
+    - name: Check the default configuration against Tailwind CSS
+      id: check
+      run: |
+        if uv run python check_tailwind_coverage.py --markdown report.md; then
+          echo "missing=false" >> "$GITHUB_OUTPUT"
+        elif [ -f report.md ]; then
+          echo "missing=true" >> "$GITHUB_OUTPUT"
+        else
+          exit 1
+        fi
+
+    - name: Open, update or close the coverage issue
+      env:
+        GH_TOKEN: ${{ github.token }}
+        MISSING: ${{ steps.check.outputs.missing }}
+        RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+      run: |
+        label="tailwind-coverage"
+        issue=$(gh issue list --label "$label" --state open --json number --jq '.[0].number // empty')
+
+        if [ "$MISSING" = "true" ]; then
+          printf '\n_Last checked by [this workflow run](%s) on %s._\n' "$RUN_URL" "$(date -u +%Y-%m-%d)" >> report.md
+          if [ -n "$issue" ]; then
+            gh issue edit "$issue" --body-file report.md
+          else
+            gh label create "$label" --color 38bdf8 --force \
+              --description "Tailwind CSS classes missing from the default configuration"
+            gh issue create --label "$label" --body-file report.md \
+              --title "Tailwind CSS classes missing from the default configuration"
+          fi
+        elif [ -n "$issue" ]; then
+          gh issue close "$issue" --comment "Every Tailwind CSS class and variant is covered now ([workflow run]($RUN_URL))."
+        fi

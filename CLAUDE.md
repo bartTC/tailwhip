@@ -69,6 +69,7 @@ tailwhip/
 │   ├── configuration.py  # Configuration management (Dynaconf)
 │   ├── sorting.py        # Core sorting algorithm
 │   └── tests/           # Test suite
+├── check_tailwind_coverage.py  # Reports Tailwind classes/variants missing from the config (needs npm)
 ├── CHANGELOG.md         # Keep a Changelog format
 └── pyproject.toml       # Project config and dependencies
 ```

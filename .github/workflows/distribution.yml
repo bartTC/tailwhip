@@ -1,69 +1,56 @@
-name: CI
+# =============================================================================
+# Distribution
+# =============================================================================
+#
+# WHAT
+#
+#   Builds the sdist and wheel once, checks them, then installs each into a
+#   clean environment and runs it:
+#
+#     build ─────────► "dist" artifact (sdist + wheel)
+#       │                 │
+#       │                 ├──► install wheel, Python 3.11 ─┐
+#       │                 ├──► install wheel, Python 3.15  │  tailwhip --version,
+#       │                 ├──► install sdist, Python 3.11  │  sort from stdin,
+#       │                 └──► install sdist, Python 3.15 ─┘  packaged tests
+#       │
+#       ├── version tag only: file names match the tag
+#       ├── twine check --strict: metadata PyPI will accept
+#       └── contents: configuration.toml and LICENSE are packaged
+#
+# WHY
+#
+#   Tests from a source checkout pass even when the package is broken: they
+#   import tailwhip from the working tree, where configuration.toml always
+#   exists. A wheel without it installs fine and fails on first use. The
+#   install jobs therefore do not check out the repository at all, so nothing
+#   can leak in from the source tree; Python 3.11 and 3.15 are the oldest and
+#   newest supported versions.
+#
+#   The tag check stops a release whose version bump was forgotten: pushing
+#   v0.15.0 while pyproject.toml still says 0.14.0 fails here instead of
+#   publishing 0.14.0 a second time.
+#
+#   The Publish workflow uploads the "dist" artifact built in this run, so the
+#   files on PyPI are byte for byte the ones that were checked and installed
+#   here, never a rebuild.
+#
+# WHEN
+#
+#   Pushes to main, pull requests against main, and every version tag through
+#   the Publish workflow (workflow_call), which only publishes if this passes.
+
+name: Distribution
 
 on:
   push:
     branches: [ main ]
-    tags: [ 'v*' ]
   pull_request:
     branches: [ main ]
+  # Also called by the publish workflow, which runs it against a version tag.
+  workflow_call:
 
 jobs:
-  lint:
-    name: Lint
-    runs-on: ubuntu-latest
-
-    steps:
-    - uses: actions/checkout@v7
-
-    - name: Install uv
-      uses: astral-sh/setup-uv@c18668ad3cf93ea998bef934396af7bb5c839dc7 # v10.2.0
-      with:
-        enable-cache: true
-
-    - name: Run ruff check
-      run: uv run --group dev ruff check .
-
-    - name: Run ruff format check
-      run: uv run --group dev ruff format --check .
-
-  test:
-    name: Test on Python ${{ matrix.python-version }}
-    runs-on: ubuntu-latest
-    strategy:
-      fail-fast: false
-      matrix:
-        python-version: ['3.11', '3.12', '3.13', '3.14', '3.15']
-
-    steps:
-    - uses: actions/checkout@v7
-
-    - name: Install uv
-      uses: astral-sh/setup-uv@c18668ad3cf93ea998bef934396af7bb5c839dc7 # v10.2.0
-      with:
-        enable-cache: true
-
-    - name: Run tests
-      run: uv run --python=${{ matrix.python-version }} --group=dev pytest
-
-  hook:
-    name: Pre-commit hook
-    runs-on: ubuntu-latest
-
-    steps:
-    - uses: actions/checkout@v7
-
-    - name: Install uv
-      uses: astral-sh/setup-uv@c18668ad3cf93ea998bef934396af7bb5c839dc7 # v10.2.0
-
-    # Installs this repository the way pre-commit does for its users
-    # (.pre-commit-hooks.yaml) and checks that the hook sorts a sample file.
-    - name: Run the tailwhip hook against a sample file
-      run: |
-        printf '<div class="p-4 flex hover:bg-blue-500 md:flex-row"></div>\n' > sample.html
-        uvx pre-commit try-repo . tailwhip --files sample.html
-        cat sample.html
-        grep -q 'class="flex p-4 md:flex-row hover:bg-blue-500"' sample.html
-
   build:
     name: Build and check distributions
     runs-on: ubuntu-latest
@@ -140,28 +127,3 @@ jobs:
 
     - name: Run the packaged test suite
       run: .venv/bin/python -m pytest --pyargs tailwhip
-
-  publish:
-    name: Publish to PyPI
-    needs: [lint, test, hook, build, install]
-    if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')
-    runs-on: ubuntu-latest
-    environment:
-      name: pypi
-      url: https://pypi.org/project/tailwhip/
-    permissions:
-      contents: read
-      id-token: write  # PyPI trusted publishing (OIDC), no API token needed
-
-    steps:
-    - name: Install uv
-      uses: astral-sh/setup-uv@c18668ad3cf93ea998bef934396af7bb5c839dc7 # v10.2.0
-
-    - name: Download the tested distributions
-      uses: actions/download-artifact@v8
-      with:
-        name: dist
-        path: dist
-
-    - name: Publish
-      run: uv publish --trusted-publishing always --check-url https://pypi.org/simple/tailwhip/ dist/*

@@ -1,0 +1,79 @@
+# =============================================================================
+# Test
+# =============================================================================
+#
+# WHAT
+#
+#   1. The test suite in tailwhip/tests on every supported Python version,
+#      run from the source checkout with the locked dev dependencies.
+#
+#   2. Tailwhip as a pre-commit hook: installs this repository the way
+#      pre-commit does for the projects that use it (.pre-commit-hooks.yaml)
+#      and checks that the hook sorts the classes in a sample file.
+#
+# WHY
+#
+#   1. The supported versions in pyproject.toml are only true if each one is
+#      tested. fail-fast is off so a failure on one version does not cancel
+#      the others and hide whether the problem is version specific.
+#
+#   2. The hook is how most projects run tailwhip. A broken entry point or a
+#      wrong .pre-commit-hooks.yaml passes every unit test and still breaks
+#      every project that uses the hook, so it gets its own end-to-end check.
+#
+#   This tests the source tree. Whether the built package works is checked
+#   separately by the Distribution workflow.
+#
+# WHEN
+#
+#   Pushes to main, pull requests against main, and every version tag through
+#   the Publish workflow (workflow_call), which only publishes if this passes.
+
+name: Test
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+  # Also called by the publish workflow, which runs it against a version tag.
+  workflow_call:
+
+jobs:
+  test:
+    name: Test on Python ${{ matrix.python-version }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ['3.11', '3.12', '3.13', '3.14', '3.15']
+
+    steps:
+    - uses: actions/checkout@v7
+
+    - name: Install uv
+      uses: astral-sh/setup-uv@c18668ad3cf93ea998bef934396af7bb5c839dc7 # v10.2.0
+      with:
+        enable-cache: true
+
+    - name: Run tests
+      run: uv run --python=${{ matrix.python-version }} --group=dev pytest
+
+  hook:
+    name: Pre-commit hook
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v7
+
+    - name: Install uv
+      uses: astral-sh/setup-uv@c18668ad3cf93ea998bef934396af7bb5c839dc7 # v10.2.0
+
+    # Installs this repository the way pre-commit does for its users
+    # (.pre-commit-hooks.yaml) and checks that the hook sorts a sample file.
+    - name: Run the tailwhip hook against a sample file
+      run: |
+        printf '<div class="p-4 flex hover:bg-blue-500 md:flex-row"></div>\n' > sample.html
+        uvx pre-commit try-repo . tailwhip --files sample.html
+        cat sample.html
+        grep -q 'class="flex p-4 md:flex-row hover:bg-blue-500"' sample.html

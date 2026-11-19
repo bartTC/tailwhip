@@ -1,0 +1,68 @@
+# =============================================================================
+# Lint
+# =============================================================================
+#
+# WHAT
+#
+#   Runs every hook from .pre-commit-config.yaml against all files:
+#
+#     check-yaml, check-toml    YAML and TOML syntax
+#     ruff-check, ruff-format   Python lint and formatting (pyproject.toml)
+#     markdownlint-cli2         Markdown style (.markdownlint-cli2.yaml)
+#     actionlint                GitHub Actions workflows, this one included
+#
+# WHY
+#
+#   The same configuration runs in three places, so what CI enforces and what
+#   developers see locally can never drift apart:
+#
+#     git commit          the pre-commit hook, on the staged files
+#     ./runtests.sh       after the test suite, on all files
+#     this workflow       on all files, for every push and pull request
+#
+#   The local hook only runs once someone has run `pre-commit install`, and
+#   `git commit --no-verify` skips it. This workflow catches whatever slipped
+#   past it before it reaches main or a release.
+#
+#   --all-files rather than only the changed files: a new hook or a stricter
+#   rule applies to the whole repository at once, not just to files that
+#   happen to be touched later.
+#
+#   The hook environments (ruff, the markdownlint npm package, the actionlint
+#   Go build) are cached under the hash of .pre-commit-config.yaml, so bumping
+#   a hook's rev rebuilds them and everything else reuses the cache.
+#
+# WHEN
+#
+#   Pushes to main, pull requests against main, and every version tag through
+#   the Publish workflow (workflow_call), which only publishes if this passes.
+
+name: Lint
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+  # Also called by the publish workflow, which runs it against a version tag.
+  workflow_call:
+
+jobs:
+  lint:
+    name: Pre-commit
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v7
+
+    - name: Install uv
+      uses: astral-sh/setup-uv@c18668ad3cf93ea998bef934396af7bb5c839dc7 # v10.2.0
+
+    - name: Cache pre-commit environments
+      uses: actions/cache@v6
+      with:
+        path: ~/.cache/pre-commit
+        key: pre-commit-${{ runner.os }}-${{ hashFiles('.pre-commit-config.yaml') }}
+
+    - name: Run pre-commit
+      run: uvx pre-commit run --all-files --show-diff-on-failure

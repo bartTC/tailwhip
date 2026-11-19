@@ -5,7 +5,8 @@ repos:
       - id: check-yaml
       - id: check-toml
 
-  # Keep in step with the ruff version in uv.lock, which CI uses.
+  # Keep in step with the ruff version in uv.lock (dev group), so a local
+  # `ruff` and this hook agree.
   - repo: https://github.com/astral-sh/ruff-pre-commit
     rev: v0.16.9
     hooks:

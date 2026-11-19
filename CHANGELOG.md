@@ -16,6 +16,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- **CI**: The CI workflow is split into Lint, Test and Distribution workflows, and publishing to PyPI moved into its own Publish workflow
+  - Lint runs every pre-commit hook against all files (YAML and TOML syntax, ruff, markdownlint, actionlint) instead of only ruff
+  - Test runs the test suite on Python 3.11 to 3.15 and checks the tailwhip pre-commit hook; Distribution builds, checks and installs the sdist and wheel
+  - Publish runs on `v*` tags, calls the three workflows against the tag and publishes the distributions Distribution built once all of them pass. The PyPI trusted publisher has to name `publish.yml` instead of `ci.yml`
 - **Performance**: Sorting is 2 to 5 times faster on large codebases. The lookup tables used while parsing a class are no longer read through Dynaconf, whose containers scan every key on each membership test; they live in a plain `Lookups` object that is rebuilt whenever the configuration changes
   - Sort keys are cached per class name and built from a precomputed component table instead of an if/elif chain; sorted class attribute values are cached as well (bounded to 8,192 entries). The separate parse cache is no longer needed
   - Splitting a class without arbitrary values uses `str.split` instead of a character loop

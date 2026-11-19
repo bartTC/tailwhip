@@ -1,4 +1,28 @@
 ---
+# =============================================================================
+# Deploy Documentation
+# =============================================================================
+#
+# WHAT
+#
+#   Renders README.md and CHANGELOG.md into a single HTML page with microdocs
+#   and deploys it to GitHub Pages: https://barttc.github.io/tailwhip/
+#
+# WHY
+#
+#   The documentation is the README and the changelog, so there is no separate
+#   docs source to maintain. Every push to main republishes them, which keeps
+#   the site in step with the repository without a manual step.
+#
+#   Only pushes to main: the github-pages environment only accepts
+#   deployments from main, so runs for pull requests always failed.
+#   The concurrency group lets one deployment finish before the next starts,
+#   instead of cancelling it halfway.
+#
+# WHEN
+#
+#   Pushes to main, or by hand from the Actions tab.
+
 name: Deploy Documentation
 
 "on":

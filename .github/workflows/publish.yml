@@ -1,0 +1,97 @@
+# =============================================================================
+# Publish
+# =============================================================================
+#
+# WHAT
+#
+#   Publishes a version tag to PyPI, but only after the Lint, Test and
+#   Distribution workflows have passed against that exact tag:
+#
+#     git push origin vX.Y.Z
+#               │
+#               ▼
+#     ┌──────────────┐  ┌──────────────┐  ┌──────────────┐
+#     │     Lint     │  │     Test     │  │ Distribution │   in parallel,
+#     └──────┬───────┘  └──────┬───────┘  └──────┬───────┘   on the tag
+#            │                 │                 │
+#            │                 │                 ├──► "dist" artifact
+#            └─────────────────┼─────────────────┘         │
+#                              ▼                           │
+#                   all three passed?                      │
+#                              │ yes                       │
+#                              ▼                           │
+#                   ┌──────────────────────┐               │
+#                   │   Publish to PyPI    │◄──────────────┘
+#                   └──────────────────────┘
+#
+# WHY
+#
+#   A separate workflow keeps release logic and PyPI permissions out of the
+#   checks that run on every push and pull request. Only the publish job gets
+#   id-token: write, and only for tags.
+#
+#   The three workflows are called as reusable workflows (workflow_call)
+#   rather than waited for with workflow_run. That way they run against the
+#   tag's commit inside this run, `needs` can gate on them directly, and the
+#   publish job can download the "dist" artifact Distribution built: the files
+#   uploaded are the ones that were tested, never a rebuild. Any job added to
+#   those workflows later gates releases automatically. They do not run on
+#   tags by themselves, so a tag runs each of them once.
+#
+#   Trusted publishing (OIDC) means no PyPI token is stored in the repository.
+#   PyPI trusts this file, publish.yml, in the "pypi" environment; renaming
+#   the file or the environment requires updating the publisher on PyPI. The
+#   environment is also where required reviewers can be added in the
+#   repository settings for a manual approval step.
+#
+#   --check-url skips files that are already on PyPI, so re-running a publish
+#   that failed halfway uploads the rest instead of failing on the first file.
+#
+# WHEN
+#
+#   Pushes of tags starting with "v". The release workflow in CLAUDE.md
+#   creates them; Distribution checks that the tag matches the version in
+#   pyproject.toml.
+
+name: Publish
+
+on:
+  push:
+    tags: [ 'v*' ]
+
+jobs:
+  lint:
+    name: Lint
+    uses: ./.github/workflows/lint.yml
+
+  test:
+    name: Test
+    uses: ./.github/workflows/test.yml
+
+  distribution:
+    name: Distribution
+    uses: ./.github/workflows/distribution.yml
+
+  publish:
+    name: Publish to PyPI
+    needs: [lint, test, distribution]
+    runs-on: ubuntu-latest
+    environment:
+      name: pypi
+      url: https://pypi.org/project/tailwhip/
+    permissions:
+      contents: read
+      id-token: write  # PyPI trusted publishing (OIDC), no API token needed
+
+    steps:
+    - name: Install uv
+      uses: astral-sh/setup-uv@c18668ad3cf93ea998bef934396af7bb5c839dc7 # v10.2.0
+
+    - name: Download the tested distributions
+      uses: actions/download-artifact@v8
+      with:
+        name: dist
+        path: dist
+
+    - name: Publish
+      run: uv publish --trusted-publishing always --check-url https://pypi.org/simple/tailwhip/ dist/*
